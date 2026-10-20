@@ -4,6 +4,10 @@ A single-player, mobile-first 3D lane battler. Drop troops, spells and buildings
 your half of the arena, knock down the enemy's watchtowers and storm their keep.
 Defeat six warlords across the campaign, or see how far you get in the Gauntlet.
 
+**Play now:** https://binland23.github.io/grokington-clash/ — on iPhone, open it in Safari, then
+Share → **Add to Home Screen** for a full-screen app. Every push to `main` redeploys it
+(`.github/workflows/deploy.yml`).
+
 ## Play it on this PC
 
 ```bash
