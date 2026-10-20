@@ -1,0 +1,56 @@
+{
+ "archer": {
+  "file": "archer.glb"
+ },
+ "berserker": {
+  "file": "berserker.glb"
+ },
+ "blimp": {
+  "file": "blimp.glb"
+ },
+ "boarrider": {
+  "file": "boarrider.glb"
+ },
+ "brute": {
+  "file": "brute.glb"
+ },
+ "gargoyle": {
+  "file": "gargoyle.glb"
+ },
+ "gunner": {
+  "file": "gunner.glb"
+ },
+ "imp": {
+  "file": "imp.glb"
+ },
+ "imphut": {
+  "file": "imphut.glb"
+ },
+ "ironclad": {
+  "file": "ironclad.glb"
+ },
+ "keep": {
+  "file": "keep.glb"
+ },
+ "knight": {
+  "file": "knight.glb"
+ },
+ "lancer": {
+  "file": "lancer.glb"
+ },
+ "pyromancer": {
+  "file": "pyromancer.glb"
+ },
+ "skeleton": {
+  "file": "skeleton.glb"
+ },
+ "turret": {
+  "file": "turret.glb"
+ },
+ "watch": {
+  "file": "watch.glb"
+ },
+ "wyrmling": {
+  "file": "wyrmling.glb"
+ }
+}

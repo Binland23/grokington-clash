@@ -1,0 +1,152 @@
+{
+ "styles": {
+  "char": "Polished stylized 3D character render for a premium fantasy mobile strategy card game, Supercell-quality art. Chunky, cute-but-heroic toy-like proportions with a slightly oversized head, bold readable silhouette, saturated colors, smooth hand-painted textures, soft warm studio lighting with a gentle rim light. Royal blue (#2f6bff) is the team accent color on cloth, plumes, banners and trims, with gold details.",
+  "fullbody": "Full body visible head to toe, 3/4 front view facing the camera, centered, with generous empty margin on all sides. Isolated on a plain flat solid pure white background. No ground, no cast shadow, no text, no logo, no border, no watermark.",
+  "fullbody_green": "Full body visible head to toe, 3/4 front view facing the camera, centered, with generous empty margin on all sides. Isolated on a plain flat solid pure chroma-key green (#00FF00) background. No ground, no cast shadow, no text, no logo, no border, no watermark.",
+  "building": "Polished stylized 3D game asset render for a premium fantasy mobile strategy card game, Supercell-quality art. Chunky toy-like proportions, saturated colors, smooth hand-painted textures, soft warm studio lighting. Royal blue (#2f6bff) team accent color on flags and trims, with gold details. Viewed from a 3/4 top-down angle from above (about 50 degrees). Centered with generous margin, isolated on a plain flat solid pure white background. No ground plane, no cast shadow, no text, no border, no watermark.",
+  "icon": "Polished stylized 3D game icon render for a premium fantasy mobile strategy card game, Supercell-quality art. Bold readable silhouette, saturated colors, soft studio lighting, slight glossy finish. Centered with generous margin, isolated on a plain flat solid pure white background. No text, no border, no frame, no watermark.",
+  "portrait": "Stylized 3D character portrait bust (head and shoulders) for a premium fantasy mobile strategy card game, Supercell-quality art. Expressive face, chunky toy-like proportions, saturated colors, smooth hand-painted textures, cinematic soft lighting. Square composition, the character fills most of the frame, with a softly blurred thematic background. No text, no border, no frame, no watermark.",
+  "scene": "Lush hand-painted stylized fantasy illustration in the style of a premium mobile strategy game's key art, Supercell-quality. Saturated colors, soft volumetric lighting, depth and atmosphere. No characters in the foreground, no text, no logo, no UI, no watermark.",
+  "ref3d": "Character model reference sheet for 3D modeling. Full body, perfectly front-facing straight-on front view, symmetrical neutral A-pose: standing straight, arms held out and angled down about 35 degrees away from the torso so there is clear space between arms and body, hands open or gripping their item, legs straight and slightly apart, feet flat on the ground. Even soft studio lighting with no harsh shadows. Centered with generous margin, isolated on a plain flat solid light gray background. No ground plane, no cast shadow, no text, no border, no watermark.",
+  "ref3d_beast": "Creature model reference for 3D modeling. Full body visible, three-quarter front side view at about 30 degrees, standing on all four legs in a neutral stance, legs straight and clearly separated, head forward. Even soft studio lighting with no harsh shadows. Centered with generous margin, isolated on a plain flat solid light gray background. No ground plane, no cast shadow, no text, no border, no watermark.",
+  "ref3d_flyer": "Creature model reference for 3D modeling. Full body, perfectly front-facing straight-on front view, symmetrical pose hovering in the air with both wings spread wide and flat out to the sides, arms and legs relaxed and slightly apart. Even soft studio lighting with no harsh shadows. Centered with generous margin, isolated on a plain flat solid light gray background. No ground plane, no cast shadow, no text, no border, no watermark.",
+  "ref3d_object": "3D model reference render of a single object for 3D modeling. Three-quarter front view from slightly above (about 25 degrees), the whole object visible, centered with generous margin. Even soft studio lighting with no harsh shadows. Isolated on a plain flat solid light gray background. No ground plane, no cast shadow, no text, no border, no watermark. Polished stylized 3D game asset, Supercell-quality art, chunky toy-like proportions, saturated colors, smooth hand-painted textures, royal blue and gold accents."
+ },
+ "items": [
+  {
+   "name": "m3d_knight",
+   "aspect": "1:1",
+   "style": "char",
+   "frame": "ref3d",
+   "subject": "A sturdy chibi knight in shining silver plate armor with gold trim, a royal blue plume on top of his helmet with the visor open showing a determined face, a short royal blue cape, a broadsword held in his right hand pointing down, a kite shield with a gold lion emblem strapped on his left forearm."
+  },
+  {
+   "name": "m3d_archer",
+   "aspect": "1:1",
+   "style": "char",
+   "frame": "ref3d",
+   "subject": "A young chibi elven archer girl with a royal blue hooded cloak, pink hair in a braid, leather armor, a wooden longbow held in her left hand pointing down, a quiver of arrows on her back."
+  },
+  {
+   "name": "m3d_imp",
+   "aspect": "1:1",
+   "style": "char",
+   "frame": "ref3d",
+   "subject": "A small mischievous chibi green-skinned goblin imp with huge pointy ears and a toothy grin, wearing a tiny royal blue bandana and leather rags, a crude curved dagger in his right hand."
+  },
+  {
+   "name": "m3d_brute",
+   "aspect": "1:1",
+   "style": "char",
+   "frame": "ref3d",
+   "subject": "A huge hulking chibi stone golem made of grey boulders with moss on its shoulders, massive rocky fists, short thick legs, glowing warm amber eyes, a royal blue sash with a gold buckle across its chest."
+  },
+  {
+   "name": "m3d_ironclad",
+   "aspect": "1:1",
+   "style": "char",
+   "frame": "ref3d",
+   "subject": "A compact intimidating chibi warrior in full dark gunmetal steel plate armor with a closed helmet with a glowing icy-white visor slit, a royal blue tabard, an enormous two-handed broadsword held in the right hand pointing down."
+  },
+  {
+   "name": "m3d_gunner",
+   "aspect": "1:1",
+   "style": "char",
+   "frame": "ref3d",
+   "subject": "A stout chibi bearded dwarf gunner with brass goggles on his iron helmet, a royal blue long coat with gold buttons, a big brass blunderbuss rifle held in his right hand pointing down."
+  },
+  {
+   "name": "m3d_pyromancer",
+   "aspect": "1:1",
+   "style": "char",
+   "frame": "ref3d",
+   "subject": "A chibi old fire wizard with a tall pointed royal blue hat, flowing royal blue robes with gold trim, a long white beard, a wooden staff with a glowing orange crystal held in his right hand."
+  },
+  {
+   "name": "m3d_berserker",
+   "aspect": "1:1",
+   "style": "char",
+   "frame": "ref3d",
+   "subject": "A fierce chibi red-haired viking shieldmaiden with braids, a royal blue fur-trimmed tunic, leather boots, a huge double-bladed battle axe held in her right hand pointing down."
+  },
+  {
+   "name": "m3d_skeleton",
+   "aspect": "1:1",
+   "style": "char",
+   "frame": "ref3d",
+   "subject": "A small goofy chibi cartoon skeleton warrior with ivory bones, a tattered royal blue scarf, a short rusty sword in its right hand and a small round wooden shield on its left arm."
+  },
+  {
+   "name": "m3d_wyrmling",
+   "aspect": "1:1",
+   "style": "char",
+   "frame": "ref3d_flyer",
+   "subject": "A cute chubby chibi baby dragon with royal blue scales, a cream colored belly, small gold horns, big friendly eyes and a short tail."
+  },
+  {
+   "name": "m3d_gargoyle",
+   "aspect": "1:1",
+   "style": "char",
+   "frame": "ref3d_flyer",
+   "subject": "A small chibi grey stone gargoyle creature with bat-like wings, little curved horns, glowing blue eyes, sharp claws and a royal blue loincloth."
+  },
+  {
+   "name": "m3d_boar",
+   "aspect": "1:1",
+   "style": "char",
+   "frame": "ref3d_beast",
+   "subject": "A chibi armored brown war boar with big curved tusks, a royal blue saddle cloth with gold trim, and an empty leather saddle on its back."
+  },
+  {
+   "name": "m3d_horse",
+   "aspect": "1:1",
+   "style": "char",
+   "frame": "ref3d_beast",
+   "subject": "A chibi white warhorse with a royal blue caparison with gold trim, an armored head plate, and an empty saddle on its back."
+  },
+  {
+   "name": "m3d_rider",
+   "aspect": "1:1",
+   "style": "char",
+   "frame": "ref3d",
+   "subject": "A wild chibi barbarian with a tall mohawk, royal blue war paint, fur shorts and leather straps, a big war hammer held in his right hand."
+  },
+  {
+   "name": "m3d_lancer",
+   "aspect": "1:1",
+   "style": "char",
+   "frame": "ref3d",
+   "subject": "A heroic chibi armored knight lancer with a plumed helmet, silver armor with royal blue and gold trim, a long jousting lance held upright in his right hand."
+  },
+  {
+   "name": "m3d_blimp",
+   "aspect": "1:1",
+   "style": "ref3d_object",
+   "subject": "A small round hot-air balloon bomber with a royal blue and gold striped balloon, ropes and a wooden basket hanging below loaded with big round black bombs, a tiny goblin pilot with goggles in the basket."
+  },
+  {
+   "name": "m3d_turret",
+   "aspect": "1:1",
+   "style": "ref3d_object",
+   "subject": "A sturdy wooden and iron defensive ballista crossbow turret on a round stone base, loaded with a giant iron-tipped bolt, small royal blue pennant flags."
+  },
+  {
+   "name": "m3d_imphut",
+   "aspect": "1:1",
+   "style": "ref3d_object",
+   "subject": "A crooked little goblin hut made of wooden planks with a straw roof and patched cloth, a royal blue flag on a stick on top, a warm glowing round doorway."
+  },
+  {
+   "name": "m3d_keep",
+   "aspect": "1:1",
+   "style": "ref3d_object",
+   "subject": "A chunky fortified square stone castle keep tower with crenellated battlements and gold trim, a big bronze cannon on the top platform, royal blue banners with a gold crown emblem on the walls."
+  },
+  {
+   "name": "m3d_watch",
+   "aspect": "1:1",
+   "style": "ref3d_object",
+   "subject": "A chunky round stone watchtower with crenellations around an open top platform, royal blue banners hanging on its sides, gold trim, a wooden door at the base."
+  }
+ ]
+}

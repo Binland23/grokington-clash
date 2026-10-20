@@ -1,0 +1,244 @@
+{
+ "bg_home": {
+  "h": 1280,
+  "w": 720
+ },
+ "bg_map": {
+  "h": 1280,
+  "w": 720
+ },
+ "bld_imphut": {
+  "h": 360,
+  "red": true,
+  "w": 350
+ },
+ "bld_turret": {
+  "h": 353,
+  "red": true,
+  "w": 360
+ },
+ "card_archer": {
+  "h": 320,
+  "w": 234
+ },
+ "card_berserker": {
+  "h": 320,
+  "w": 216
+ },
+ "card_blimp": {
+  "h": 320,
+  "w": 203
+ },
+ "card_boarrider": {
+  "h": 320,
+  "w": 247
+ },
+ "card_brute": {
+  "h": 271,
+  "w": 320
+ },
+ "card_gargoyle": {
+  "h": 250,
+  "w": 320
+ },
+ "card_gunner": {
+  "h": 320,
+  "w": 259
+ },
+ "card_imp": {
+  "h": 320,
+  "w": 259
+ },
+ "card_imphut": {
+  "h": 320,
+  "w": 307
+ },
+ "card_ironclad": {
+  "h": 320,
+  "w": 262
+ },
+ "card_knight": {
+  "h": 320,
+  "w": 232
+ },
+ "card_lancer": {
+  "h": 320,
+  "w": 250
+ },
+ "card_pyromancer": {
+  "h": 320,
+  "w": 220
+ },
+ "card_skeleton": {
+  "h": 320,
+  "w": 241
+ },
+ "card_turret": {
+  "h": 282,
+  "w": 320
+ },
+ "card_wyrmling": {
+  "h": 304,
+  "w": 320
+ },
+ "chest_gold": {
+  "h": 265,
+  "w": 300
+ },
+ "chest_royal": {
+  "h": 269,
+  "w": 300
+ },
+ "chest_silver": {
+  "h": 254,
+  "w": 300
+ },
+ "chest_wood": {
+  "h": 257,
+  "w": 300
+ },
+ "portrait_ember": {
+  "h": 320,
+  "w": 320
+ },
+ "portrait_frost": {
+  "h": 320,
+  "w": 320
+ },
+ "portrait_goblin": {
+  "h": 320,
+  "w": 320
+ },
+ "portrait_hero": {
+  "h": 320,
+  "w": 320
+ },
+ "portrait_hollow": {
+  "h": 320,
+  "w": 320
+ },
+ "portrait_iron": {
+  "h": 320,
+  "w": 320
+ },
+ "portrait_sky": {
+  "h": 320,
+  "w": 320
+ },
+ "spell_arrows": {
+  "h": 187,
+  "w": 256
+ },
+ "spell_fireball": {
+  "h": 256,
+  "w": 251
+ },
+ "spell_freeze": {
+  "h": 256,
+  "w": 226
+ },
+ "spell_heal": {
+  "h": 256,
+  "w": 251
+ },
+ "spell_rage": {
+  "h": 255,
+  "w": 256
+ },
+ "spell_zap": {
+  "h": 256,
+  "w": 193
+ },
+ "tower_keep": {
+  "h": 420,
+  "red": true,
+  "w": 404
+ },
+ "tower_watch": {
+  "h": 420,
+  "red": true,
+  "w": 285
+ },
+ "ui_crown": {
+  "h": 182,
+  "w": 192
+ },
+ "ui_gold": {
+  "h": 104,
+  "w": 192
+ },
+ "ui_mana": {
+  "h": 192,
+  "w": 132
+ },
+ "unit_archer": {
+  "h": 320,
+  "red": true,
+  "w": 223
+ },
+ "unit_berserker": {
+  "h": 320,
+  "red": true,
+  "w": 230
+ },
+ "unit_blimp": {
+  "h": 320,
+  "red": true,
+  "w": 222
+ },
+ "unit_boarrider": {
+  "h": 320,
+  "red": true,
+  "w": 277
+ },
+ "unit_brute": {
+  "h": 320,
+  "red": true,
+  "w": 278
+ },
+ "unit_gargoyle": {
+  "h": 266,
+  "red": true,
+  "w": 320
+ },
+ "unit_gunner": {
+  "h": 320,
+  "red": true,
+  "w": 218
+ },
+ "unit_imp": {
+  "h": 320,
+  "red": true,
+  "w": 294
+ },
+ "unit_ironclad": {
+  "h": 320,
+  "red": true,
+  "w": 207
+ },
+ "unit_knight": {
+  "h": 320,
+  "red": true,
+  "w": 265
+ },
+ "unit_lancer": {
+  "h": 314,
+  "red": true,
+  "w": 320
+ },
+ "unit_pyromancer": {
+  "h": 320,
+  "red": true,
+  "w": 215
+ },
+ "unit_skeleton": {
+  "h": 320,
+  "red": true,
+  "w": 260
+ },
+ "unit_wyrmling": {
+  "h": 266,
+  "red": true,
+  "w": 320
+ }
+}
