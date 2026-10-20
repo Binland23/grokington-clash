@@ -1,6 +1,7 @@
 import type { AIProfile } from '../engine/ai';
 import { AI_PROFILES } from '../engine/ai';
 import type { ChestType } from './profile';
+import type { BattleMods } from '../engine/types';
 
 export interface Region {
   id: string;
@@ -26,6 +27,7 @@ export interface Stage {
   aiName: 'easy' | 'normal' | 'hard' | 'brutal';
   power: string | null;
   towerHpMul: number;
+  enemyMods: Partial<BattleMods>;
   reward: { gold: number; chest: ChestType; card?: string; power?: string };
   /** Map position, % of map width / height. */
   pos: { x: number; y: number };
@@ -106,14 +108,14 @@ const DECKS: string[][] = [
   ['boneswarm', 'brute', 'pyromancer', 'ironclad', 'frost', 'wyrmling', 'imphut', 'fireorb'],
 ];
 
-const LEVELS = [1, 1, 2, 2, 2, 3, 3, 4, 4, 4, 5, 5, 5, 6, 6, 7, 7, 7, 8, 8, 8, 9, 9, 10];
+const LEVELS = [1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4, 5, 5, 5, 5, 6, 6];
 const AIS: Stage['aiName'][] = [
-  'easy', 'easy', 'easy', 'normal',
+  'easy', 'easy', 'easy', 'easy',
+  'easy', 'normal', 'normal', 'normal',
   'normal', 'normal', 'normal', 'normal',
-  'normal', 'normal', 'hard', 'hard',
+  'normal', 'normal', 'normal', 'hard',
+  'normal', 'hard', 'hard', 'hard',
   'hard', 'hard', 'hard', 'hard',
-  'hard', 'hard', 'hard', 'brutal',
-  'hard', 'brutal', 'brutal', 'brutal',
 ];
 /** First-clear card unlocks, by stage index. */
 const UNLOCKS: Record<number, string> = {
@@ -144,10 +146,21 @@ export const STAGES: Stage[] = DECKS.map((deck, index) => {
     boss,
     deck,
     level: LEVELS[index],
-    ai: AI_PROFILES[aiName],
+    ai: {
+      ...AI_PROFILES[aiName],
+      // Campaign veterans leave room for human input; brutal reactions belong in long Gauntlet runs.
+      ...(aiName === 'hard' ? { think: [1.2, 1.9] as [number, number], skill: 0.65, reaction: 1.2 } : {}),
+      openingDelay: index === 0 ? 12 : index < 4 ? 8 : 4,
+    },
     aiName,
     power: boss ? REGIONS[region].power : region >= 2 && index % 4 === 2 ? 'rally' : null,
-    towerHpMul: boss ? 1.25 : 1,
+    towerHpMul: index === 0 ? 0.8 : boss && region > 0 ? 1.1 : 1,
+    enemyMods: {
+      startMana: index === 0 ? 2 : index < 4 ? 3 : 5,
+      manaRate: index === 0 ? 0.65 : index === 1 || index === 3 ? 0.75
+        : index === 15 ? 0.8 : index === 2 || index === 11 || index === 23 ? 0.85
+        : region < 3 ? 0.9 : 0.95,
+    },
     reward: {
       gold: 60 + index * 25 + (boss ? 150 : 0),
       chest,

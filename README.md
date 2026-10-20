@@ -43,6 +43,40 @@ Runtime" on private networks when Windows asks, or in Windows Security → Firew
 
 `npm test` runs the engine tests. `npm run build` makes a static build in `dist/`.
 
+## Difficulty and progression
+
+The 24-stage campaign now ranges from enemy level 1 to 6. The opening opponent
+starts with less mana, regenerates it more slowly, and waits 12 battle seconds
+before acting. The first-time tutorial pauses combat until a successful card
+deployment. Later opponents gain faster decisions and stronger decks; bosses
+have individual mana budgets and at most 10% extra tower health.
+
+First clears award two copies of each equipped card in addition to the existing
+gold, chest and unlock rewards. Newly unlocked cards match the current commander
+level. Health-tiebreak victories count as campaign clears, and overtime compares
+surviving towers so a destroyed tower on each side cannot force a draw.
+
+Gauntlet starts with two easy opponents, moves to normal through battle five,
+hard through battle ten, and brutal thereafter. Existing saves are retained.
+
+For reproducible campaign checks in PowerShell:
+
+```powershell
+$env:CAMPAIGN_BALANCE = '1'
+$env:GAMES = '24'
+npx vitest run tests/campaign-balance.test.ts --disableConsoleIntercept
+$env:PLAYER = 'normal'
+npx vitest run tests/campaign-balance.test.ts --disableConsoleIntercept
+```
+
+This runs all stages with the starter deck, a level per region, and fixed seeds.
+The default player takes 2.5–4 seconds between decisions; `normal` uses the normal
+AI. These are comparison benchmarks, not predictions of human win rates. The
+progression tests separately check 20 chest-loot seeds to ensure first-clear
+rewards can keep commander level within one level of campaign opponents without
+replay farming. Random-deck card comparisons remain available in `balance.test.ts`;
+card inclusion rates alone are not enough evidence to change individual card stats.
+
 ## Asset pipeline
 
 All art starts in Grok:

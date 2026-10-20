@@ -22,6 +22,7 @@ export interface EnemySetup {
   power: string | null;
   ai: AIProfile;
   towerHpMul: number;
+  mods?: Partial<BattleMods>;
   taunt?: string;
 }
 
@@ -45,7 +46,7 @@ export function battleScreen(params: unknown): HTMLElement {
     levels: [levelsOf(profile), enemyLevels],
     towerLevels: [myLevel, setup.enemy.level],
     powers: [profile.power, setup.enemy.power],
-    mods: [setup.playerMods, { towerHpMul: setup.enemy.towerHpMul }],
+    mods: [setup.playerMods, { ...setup.enemy.mods, towerHpMul: setup.enemy.towerHpMul }],
     seed: Math.floor(Math.random() * 1e9),
   });
   const ai = new AIController(battle, 1, setup.enemy.ai, Math.floor(Math.random() * 1e9));
@@ -204,6 +205,8 @@ export function battleScreen(params: unknown): HTMLElement {
       if (tutorialEl) {
         tutorialEl.remove();
         tutorialEl = null;
+        profile.seenTutorial = true;
+        save();
       }
       return true;
     }
@@ -627,7 +630,7 @@ export function battleScreen(params: unknown): HTMLElement {
     last = now;
     slowT = Math.max(0, slowT - rawDt);
     const dt = slowT > 0 ? rawDt * 0.3 : rawDt;
-    const running = started && !paused && !document.hidden;
+    const running = started && !paused && !document.hidden && !tutorialEl;
     if (running && battle.phase !== 'ended') {
       acc += dt;
       let steps = 0;
@@ -660,7 +663,8 @@ export function battleScreen(params: unknown): HTMLElement {
       }
     }
     fx.update(running || ended ? dt : 0);
-    renderer.render(battle, fx, running || ended ? dt : 0, preview, powerArmed ? powerPreview : null);
+    // Let the camera finish its entrance while the tutorial pauses combat.
+    renderer.render(battle, fx, (started && !paused && !document.hidden) || ended ? dt : 0, preview, powerArmed ? powerPreview : null);
     for (const s of renderer.pendingSmoke) fx.burst(s.x, s.y, 1, { kind: 'smoke', colors: ['#555', '#777'], speed: 0.3, up: 1.2, gravity: -0.6, max: 1.6, size: 0.25, z: 2.5 });
     renderer.pendingSmoke.length = 0;
     updateHud();
@@ -713,11 +717,9 @@ export function battleScreen(params: unknown): HTMLElement {
         h('div', { class: 'hand' }, '👇'),
         'Drag a card onto your side of the arena!',
         h('div', { style: 'font-family:var(--body);font-size:13px;font-weight:700;margin-top:4px' },
-          'Each card costs mana (pink bar). Knock down enemy towers to earn crowns. Destroy the Keep to win!'),
+          'The battle waits for your first card. Each card costs mana (pink bar). Put a Brute or Knight in front of your ranged troops, then push toward a tower!'),
       );
       arena.appendChild(tutorialEl);
-      profile.seenTutorial = true;
-      save();
     }
   }
 

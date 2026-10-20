@@ -105,6 +105,7 @@ function stageModal(s: Stage, unlocked: boolean): void {
   const cleared = p.cleared[s.index] > 0;
   const rewards: Node[] = [];
   if (!cleared) {
+    rewards.push(h('div', { class: 'reward panel' }, '🃏', '+2 copies of every deck card'));
     rewards.push(h('div', { class: 'reward panel' }, img(spriteUrl('ui_gold')), `${s.reward.gold}`));
     rewards.push(h('div', { class: 'reward panel' }, img(spriteUrl(CHEST_INFO[s.reward.chest].sprite)), CHEST_INFO[s.reward.chest].name));
     if (s.reward.card) rewards.push(h('div', { class: 'reward panel' }, h('div', { style: 'width:56px;margin:0 auto 4px;container-type:inline-size' }, cardView(s.reward.card)), CARDS[s.reward.card].name));

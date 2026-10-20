@@ -128,7 +128,19 @@ export function upgrade(p: Profile, id: string): boolean {
 
 export function unlockCard(p: Profile, id: string): boolean {
   if (p.cards[id]) return false;
-  p.cards[id] = { level: Math.max(1, kingLevel(p) - 1), copies: 0 };
+  p.cards[id] = { level: kingLevel(p), copies: 0 };
+  return true;
+}
+
+/** Guaranteed first-clear progress alongside random chest loot. */
+export function recordCampaignClear(p: Profile, index: number, crowns: number): boolean {
+  const first = !(p.cleared[index] > 0);
+  // A health-tiebreak victory can have zero destroyed towers, but still clears the stage.
+  p.cleared[index] = Math.max(p.cleared[index] ?? 0, crowns, 1);
+  if (!first) return false;
+  for (const id of new Set(p.deck)) {
+    if (p.cards[id]) p.cards[id].copies += 2;
+  }
   return true;
 }
 

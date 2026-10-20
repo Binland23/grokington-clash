@@ -14,10 +14,12 @@ export interface AIProfile {
   pushMana: number;
   /** Reaction delay before it responds to a new threat. */
   reaction: number;
+  /** Opening breathing room, measured in battle seconds. */
+  openingDelay?: number;
 }
 
 export const AI_PROFILES: Record<'easy' | 'normal' | 'hard' | 'brutal', AIProfile> = {
-  easy: { think: [1.5, 2.4], skill: 0.25, pushMana: 10, reaction: 1.6 },
+  easy: { think: [2.5, 3.8], skill: 0.15, pushMana: 10, reaction: 2.4 },
   normal: { think: [0.9, 1.5], skill: 0.55, pushMana: 9, reaction: 1.0 },
   hard: { think: [0.5, 0.9], skill: 0.8, pushMana: 8, reaction: 0.55 },
   brutal: { think: [0.3, 0.55], skill: 0.95, pushMana: 7, reaction: 0.3 },
@@ -62,6 +64,7 @@ export class AIController {
     seed = 1234,
   ) {
     this.rng = new Rng(seed);
+    this.thinkT = profile.openingDelay ?? 1.5;
   }
 
   /** World <-> local (the AI always reasons as if it were at the bottom). */

@@ -165,6 +165,15 @@ describe('combat', () => {
 });
 
 describe('time limits', () => {
+  it('uses surviving tower health when both teams have already lost a tower', () => {
+    const b = new Battle({ decks: [STARTER_DECK, STARTER_DECK], levels: [lv(1), lv(1)], towerLevels: [1, 1], seed: 3, regulation: 2, overtime: 2 });
+    b.damage(b.tower(0, 'watch', -1)!, 1e6, 1);
+    b.damage(b.tower(1, 'watch', -1)!, 1e6, 0);
+    b.tower(1, 'watch', 1)!.hp -= 100;
+    step(b, 4.2);
+    expect(b.result?.winner).toBe(0);
+  });
+
   it('goes to overtime on equal crowns and then breaks ties on tower health', () => {
     const b = new Battle({ decks: [STARTER_DECK, STARTER_DECK], levels: [lv(1), lv(1)], towerLevels: [1, 1], seed: 3, regulation: 2, overtime: 2 });
     step(b, 2.1);

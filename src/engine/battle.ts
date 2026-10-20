@@ -1003,12 +1003,14 @@ export class Battle {
   // ---------------------------------------------------------------- end of battle
 
   private towerHpFrac(team: Team): number {
-    // Fraction of the weakest tower (destroyed towers count as 0).
+    // Compare surviving towers; counting destroyed towers as zero forces a draw
+    // whenever both teams have already taken a crown.
     let min = 1;
     for (const spot of TOWER_SPOTS) {
       if (spot.team !== team) continue;
       const t = this.units.find((u) => u.kind === 'tower' && u.team === team && u.towerType === spot.type && u.lane === spot.lane);
-      const f = t && !t.dead ? t.hp / t.maxHp : 0;
+      if (!t || t.dead) continue;
+      const f = t.hp / t.maxHp;
       if (f < min) min = f;
     }
     return min;

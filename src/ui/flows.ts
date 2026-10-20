@@ -13,6 +13,7 @@ import {
   kingLevel,
   rollChest,
   unlockCard,
+  recordCampaignClear,
   type ChestType,
 } from '../meta/profile';
 import { spriteUrl } from '../render/sprites';
@@ -55,6 +56,7 @@ export function startCampaignStage(index: number): void {
       power: s.power,
       ai: s.ai,
       towerHpMul: s.towerHpMul,
+      mods: s.enemyMods,
       taunt: s.boss ? r.taunt : undefined,
     },
     theme: r.theme,
@@ -79,9 +81,9 @@ function campaignResult(s: Stage, res: BattleResult, screen: HTMLElement): void 
   let note = '';
   const r = REGIONS[s.region];
   if (res.winner === 0) {
-    const first = !(p.cleared[s.index] > 0);
-    p.cleared[s.index] = Math.max(p.cleared[s.index] ?? 0, res.crowns[0]);
+    const first = recordCampaignClear(p, s.index, res.crowns[0]);
     if (first) {
+      tiles.push({ icon: h('div', { class: 'big-ico' }, '🃏'), label: '+2 copies of every deck card' });
       p.gold += s.reward.gold;
       tiles.push(goldTile(s.reward.gold));
       tiles.push(chestTile(s.reward.chest, addChest(p, s.reward.chest)));
@@ -132,7 +134,7 @@ export function startGauntletBattle(): void {
   const s = STAGES[region * 4 + (boss ? 3 : Math.floor(Math.random() * 3))];
   const r = REGIONS[s.region];
   const level = Math.max(1, Math.min(10, kingLevel(p) + Math.floor(wins / 3) - 1));
-  const aiName = wins < 2 ? 'normal' : wins < 6 ? 'hard' : 'brutal';
+  const aiName = wins < 2 ? 'easy' : wins < 5 ? 'normal' : wins < 10 ? 'hard' : 'brutal';
   go('battle', {
     enemy: {
       name: boss ? r.warlord : stageOpponentName(s),
@@ -141,8 +143,9 @@ export function startGauntletBattle(): void {
       level,
       deck: s.deck,
       power: boss ? r.power : wins >= 3 ? 'rally' : null,
-      ai: AI_PROFILES[aiName],
-      towerHpMul: boss ? 1.2 : 1,
+      ai: { ...AI_PROFILES[aiName], openingDelay: wins < 2 ? 8 : 4 },
+      mods: { manaRate: wins < 2 ? 0.85 : 1 },
+      towerHpMul: boss ? 1.1 : 1,
       taunt: boss ? r.taunt : undefined,
     },
     theme: r.theme,
