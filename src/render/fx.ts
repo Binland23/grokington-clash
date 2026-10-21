@@ -88,6 +88,8 @@ export class Fx {
   decals: Decal[] = [];
   ghosts: Ghost[] = [];
   shake = 0;
+  /** Quick camera push-in on heavy impacts; decays fast. */
+  punch = 0;
   flash = 0;
   flashColor = '#fff';
 
@@ -117,6 +119,39 @@ export class Fx {
         color: colors[Math.floor(Math.random() * colors.length)],
         gravity: o.gravity ?? 6,
         spin: (Math.random() - 0.5) * 10,
+      });
+    }
+    if (this.particles.length > 900) this.particles.splice(0, this.particles.length - 900);
+  }
+
+  /** Particles thrown evenly outward along the ground (shockwave dust, debris halos). */
+  radial(
+    x: number,
+    y: number,
+    n: number,
+    o: Partial<Particle> & { speed?: number; up?: number; colors?: string[]; offset?: number },
+  ): void {
+    const speed = o.speed ?? 3;
+    const colors = o.colors ?? [o.color ?? '#fff'];
+    for (let i = 0; i < n; i++) {
+      const a = (i / n) * Math.PI * 2 + Math.random() * 0.35;
+      const s = speed * (0.85 + Math.random() * 0.3);
+      const max = (o.max ?? 0.6) * (0.75 + Math.random() * 0.5);
+      const off = o.offset ?? 0;
+      this.particles.push({
+        kind: o.kind ?? 'dust',
+        x: x + Math.cos(a) * off,
+        y: y + Math.sin(a) * off * 0.8,
+        z: o.z ?? 0.15,
+        vx: Math.cos(a) * s,
+        vy: Math.sin(a) * s * 0.7,
+        vz: (o.up ?? 0.5) * (0.5 + Math.random()),
+        life: max,
+        max,
+        size: (o.size ?? 0.2) * (0.7 + Math.random() * 0.6),
+        color: colors[Math.floor(Math.random() * colors.length)],
+        gravity: o.gravity ?? 2,
+        spin: (Math.random() - 0.5) * 6,
       });
     }
     if (this.particles.length > 900) this.particles.splice(0, this.particles.length - 900);
@@ -161,6 +196,10 @@ export class Fx {
     if (this.glows.length > 40) this.glows.shift();
   }
 
+  addPunch(v: number): void {
+    this.punch = Math.min(1, this.punch + v);
+  }
+
   addShake(v: number): void {
     this.shake = Math.min(0.6, this.shake + v);
   }
@@ -201,6 +240,7 @@ export class Fx {
     for (const g of this.ghosts) g.life -= dt;
     this.ghosts = this.ghosts.filter((g) => g.life > 0);
     this.shake = Math.max(0, this.shake - dt * 1.6);
+    this.punch = Math.max(0, this.punch - dt * 5);
     this.flash = Math.max(0, this.flash - dt * 2.5);
   }
 }

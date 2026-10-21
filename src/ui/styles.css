@@ -810,6 +810,25 @@ button {
 .drag-card .card {
   width: 100%;
 }
+.drag-card.cancel .card {
+  box-shadow:
+    0 0 0 3px #ff4b55,
+    0 0 16px rgba(255, 75, 85, 0.8);
+  filter: grayscale(0.4) brightness(0.85);
+}
+.drag-card.cancel::after {
+  content: 'Release to cancel';
+  position: absolute;
+  left: 50%;
+  top: -22px;
+  transform: translateX(-50%);
+  white-space: nowrap;
+  font: 12px var(--display, sans-serif);
+  color: #fff;
+  background: #c8323c;
+  padding: 2px 8px;
+  border-radius: 10px;
+}
 
 .b-mana {
   display: flex;
@@ -1453,6 +1472,23 @@ button {
   width: 0;
   background: linear-gradient(180deg, #ffe066, #ffb619);
   transition: width 0.15s;
+}
+.loading-battle {
+  z-index: 100;
+}
+.loading .spinner {
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  border: 5px solid rgba(255, 255, 255, 0.2);
+  border-top-color: #ffd23f;
+  /* transform animations run on the compositor, so it keeps spinning while the page is busy */
+  animation: spin 0.9s linear infinite;
+}
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 .tap {
   font-family: var(--display);

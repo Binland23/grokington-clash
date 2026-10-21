@@ -17,6 +17,8 @@ export interface DeployPreview {
   x: number;
   y: number;
   ok: boolean;
+  /** Where the finger actually is (client px), when the ghost is lifted above it. */
+  finger?: { x: number; y: number };
 }
 
 export interface PowerPreview {
@@ -61,6 +63,13 @@ interface UnitView {
   attackUntil: number;
   deathT: number;
   flipX: number;
+  /** Hit reaction: knockback direction (world xz), peak offset, squash and elapsed/duration. */
+  kickDx: number;
+  kickDz: number;
+  kickAmp: number;
+  kickSquash: number;
+  kickT: number;
+  kickDur: number;
 }
 
 export class Scene3D {
@@ -103,6 +112,7 @@ export class Scene3D {
   private raycaster = new THREE.Raycaster();
   private ground = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
   private previewGroup = new THREE.Group();
+  private pvLine: { tx: number; ty: number; fx: number; fy: number; ok: boolean } | null = null;
   private zoneMeshes: THREE.Mesh[] = [];
   private ghostCache = new Map<string, THREE.Object3D>();
   private sun: THREE.DirectionalLight;
@@ -240,6 +250,31 @@ export class Scene3D {
     const hit = new THREE.Vector3();
     if (!this.raycaster.ray.intersectPlane(this.ground, hit)) return { x: -99, y: -99 };
     return { x: hit.x + ARENA_W / 2, y: hit.z + ARENA_H / 2 };
+  }
+
+  /** Shove a unit away from `from` and squash it: the visible half of a hit. `power` ~ 0.5 light .. 2 massive. */
+  kick(id: number, fromX: number | undefined, fromY: number | undefined, power: number): void {
+    const v = this.views.get(id);
+    if (!v) return;
+    let dx = fromX === undefined ? 0 : v.lastX - fromX;
+    let dz = fromY === undefined ? 0 : v.lastY - fromY;
+    const len = Math.hypot(dx, dz);
+    if (len < 1e-3) {
+      const a = Math.random() * Math.PI * 2;
+      dx = Math.cos(a);
+      dz = Math.sin(a);
+    } else {
+      dx /= len;
+      dz /= len;
+    }
+    // Big bodies barely move; towers only shudder.
+    const mass = v.structure ? 0 : 1 / (0.7 + v.s.radius);
+    v.kickDx = dx;
+    v.kickDz = dz;
+    v.kickAmp = Math.min(0.7, 0.3 * power * mass);
+    v.kickSquash = Math.min(0.28, (v.structure ? 0.03 : 0.13) * power);
+    v.kickT = 0;
+    v.kickDur = 0.14 + 0.06 * Math.min(2, power);
   }
 
   private project(x: number, y: number, h: number): { x: number; y: number; k: number; vis: boolean } {
@@ -446,7 +481,7 @@ export class Scene3D {
     const v: UnitView = {
       id: u.id, team: u.team, s: u.s, structure, root, body, model, sprite, spriteMat, shadow, ring, height,
       yaw: u.team === 0 ? Math.PI : 0, lastX: u.x, lastY: u.y, lastAttack: 0, current: '', attackUntil: 0, deathT: 0,
-      flipX: 1,
+      flipX: 1, kickDx: 0, kickDz: 0, kickAmp: 0, kickSquash: 0, kickT: 1, kickDur: 0.22,
     };
     if (model?.mixer) this.play(v, 'idle');
     return v;
@@ -484,7 +519,19 @@ export class Scene3D {
     if (u.flying) elev += FLY_H + Math.sin(this.time * 3 + u.id) * 0.1;
     if (u.hop) elev += 0.8 * Math.abs(Math.sin(this.time * 5));
     if (u.deployT > 0) elev += Math.pow(u.deployT / DEPLOY_TIME, 2) * 4;
-    v.root.position.set(p.x, elev, p.z);
+    let kx = 0;
+    let kz = 0;
+    let ks = 0;
+    if (v.kickT < v.kickDur) {
+      v.kickT += dt;
+      const t = Math.min(1, v.kickT / v.kickDur);
+      const pulse = Math.sin(t * Math.PI);
+      kx = v.kickDx * v.kickAmp * pulse;
+      kz = v.kickDz * v.kickAmp * pulse;
+      ks = v.kickSquash * (1 - t) * (1 - t);
+    }
+    v.root.position.set(p.x + kx, elev, p.z + kz);
+    v.root.scale.set(1 + ks * 0.7, 1 - ks, 1 + ks * 0.7);
     v.shadow.position.set(p.x, 0.02, p.z);
     const shrink = u.flying ? 0.7 : u.deployT > 0 ? 1 - (u.deployT / DEPLOY_TIME) * 0.6 : 1;
     const sr = u.s.radius * 2.6 * shrink;
@@ -662,6 +709,10 @@ export class Scene3D {
       rel.multiplyScalar(1 + e * 0.18);
       rel.y += e * 3;
       this.camera.position.copy(this.camTarget).add(rel);
+    }
+    if (fx.punch > 0) {
+      const dir = this.camTarget.clone().sub(this.camera.position).normalize();
+      this.camera.position.addScaledVector(dir, fx.punch * 0.9);
     }
     if (shake > 0) {
       this.camera.position.x += (Math.random() - 0.5) * shake * 0.9;
@@ -1022,8 +1073,29 @@ export class Scene3D {
     return g;
   }
 
+  /** Tile marker + light pillar so a lifted ghost reads clearly from the target tile. */
+  private pad(color: string, radius: number): THREE.Group {
+    const g = new THREE.Group();
+    const pulse = 1 + 0.06 * Math.sin(this.time * 8);
+    const ring = new THREE.Mesh(new THREE.RingGeometry(radius * 0.88, radius, 48), new THREE.MeshBasicMaterial({ color, transparent: true, opacity: 0.95, depthWrite: false }));
+    ring.rotation.x = -Math.PI / 2;
+    ring.position.y = 0.08;
+    ring.scale.setScalar(pulse);
+    const disc = new THREE.Mesh(new THREE.CircleGeometry(radius * 0.88, 40), new THREE.MeshBasicMaterial({ color, transparent: true, opacity: 0.2, depthWrite: false }));
+    disc.rotation.x = -Math.PI / 2;
+    disc.position.y = 0.07;
+    const beam = new THREE.Mesh(
+      new THREE.CylinderGeometry(radius * 0.8, radius * 0.8, 3.2, 24, 1, true),
+      new THREE.MeshBasicMaterial({ color, transparent: true, opacity: 0.16, depthWrite: false, side: THREE.DoubleSide, blending: THREE.AdditiveBlending }),
+    );
+    beam.position.y = 1.6;
+    g.add(ring, disc, beam);
+    return g;
+  }
+
   private updatePreview(b: Battle, pv: DeployPreview | null, power: PowerPreview | null): void {
     this.previewGroup.clear();
+    this.pvLine = pv?.finger ? { tx: pv.x, ty: pv.y, fx: pv.finger.x, fy: pv.finger.y, ok: pv.ok } : null;
     for (const z of this.zoneMeshes) z.visible = false;
     if (pv) {
       const card = CARDS[pv.cardId];
@@ -1033,6 +1105,11 @@ export class Scene3D {
         this.previewGroup.add(c);
       } else {
         this.drawZone(b);
+        if (pv.finger) {
+          const pad = this.pad(pv.ok ? '#ffffff' : '#ff4040', UNITS[card.unit!].radius * 1.5 + 0.3);
+          pad.position.copy(W(pv.x, pv.y));
+          this.previewGroup.add(pad);
+        }
         const gh = this.ghostFor(pv.cardId);
         gh.position.copy(W(pv.x, pv.y));
         gh.traverse((o) => {
@@ -1104,6 +1181,7 @@ export class Scene3D {
     g.globalAlpha = 1;
 
     for (const u of b.units) this.drawBars(u);
+    this.drawFingerLine();
 
     g.textAlign = 'center';
     g.textBaseline = 'middle';
@@ -1127,6 +1205,35 @@ export class Scene3D {
       g.fillRect(0, 0, this.Wpx, this.Hpx);
       g.globalAlpha = 1;
     }
+  }
+
+  /** Dashed tether from the fingertip up to the lifted placement. */
+  private drawFingerLine(): void {
+    const l = this.pvLine;
+    if (!l) return;
+    const g = this.g;
+    const r = this.canvas.getBoundingClientRect();
+    const f = { x: l.fx - r.left, y: l.fy - r.top };
+    const t = this.project(l.tx, l.ty, 0);
+    const col = l.ok ? '255,255,255' : '255,64,64';
+    g.save();
+    g.lineCap = 'round';
+    g.setLineDash([2, 9]);
+    g.lineWidth = 4;
+    g.strokeStyle = `rgba(${col},0.75)`;
+    g.beginPath();
+    g.moveTo(f.x, f.y);
+    g.lineTo(t.x, t.y);
+    g.stroke();
+    g.setLineDash([]);
+    g.fillStyle = `rgba(${col},0.35)`;
+    g.strokeStyle = `rgba(${col},0.9)`;
+    g.lineWidth = 2;
+    g.beginPath();
+    g.arc(f.x, f.y, 16, 0, Math.PI * 2);
+    g.fill();
+    g.stroke();
+    g.restore();
   }
 
   private drawBars(u: Unit): void {
