@@ -7,6 +7,7 @@ import type { BattleEvent, BattleMods } from '../engine/types';
 import { kingLevel, levelsOf } from '../meta/profile';
 import { Fx } from '../render/fx';
 import * as impact from '../render/impact';
+import { debugNote } from './debugHud';
 import { Scene3D, type DeployPreview, type PowerPreview } from '../render3d/scene3d';
 import { spriteUrl } from '../render/sprites';
 import { THEMES } from '../render/themes';
@@ -201,6 +202,7 @@ export function battleScreen(params: unknown): HTMLElement {
     const id = p.hand[i];
     const t = renderer.toTile(cx, cy);
     const pos = battle.placement(0, id, t.x, t.y);
+    debugNote(`deploy ${id} tile ${t.x.toFixed(1)},${t.y.toFixed(1)} ${pos ? 'ok' : 'blocked'}`);
     if (!pos) {
       toast("Can't deploy there");
       sfx('nope');
@@ -257,6 +259,7 @@ export function battleScreen(params: unknown): HTMLElement {
     d.el.remove();
     slots[d.i].classList.remove('dragging');
     preview = null;
+    debugNote(`drag end ${cancelled ? 'CANCEL' : 'up'} moved=${d.moved} overArena=${overArena(e.clientX, e.clientY)}`);
     if (cancelled) return;
     if (d.moved && overArena(e.clientX, e.clientY)) {
       if (tryDeploy(d.i, e.clientX, e.clientY - liftAt(d.lift, e.clientY))) setSelected(null);
@@ -275,6 +278,7 @@ export function battleScreen(params: unknown): HTMLElement {
     slot.addEventListener('dragstart', (e) => e.preventDefault());
     slot.addEventListener('contextmenu', (e) => e.preventDefault());
     slot.addEventListener('pointerdown', (e) => {
+      debugNote(`card ${i} down started=${started} drag=${!!drag}`);
       if (!started || battle.phase === 'ended' || drag) return;
       unlockAudio();
       e.preventDefault();

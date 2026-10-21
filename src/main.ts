@@ -7,6 +7,7 @@ import { loadSprites } from './render/sprites';
 import { loadModels } from './render3d/models';
 import { app, go, initApp, registerScreen } from './ui/app';
 import { battleScreen } from './ui/battleScreen';
+import { debugHudEnabled, startDebugHud } from './ui/debugHud';
 import { loadingScreen } from './ui/loadingScreen';
 import { cardsScreen } from './ui/cardsScreen';
 import { gauntletScreen } from './ui/gauntletScreen';
@@ -85,5 +86,7 @@ document.addEventListener('visibilitychange', () => {
 });
 window.addEventListener('pageshow', refit);
 window.addEventListener('orientationchange', refit);
+
+if (debugHudEnabled()) startDebugHud();
 
 void boot();
