@@ -42,10 +42,24 @@ body {
 
 body {
   position: fixed;
-  inset: 0;
-  height: auto;
+  top: 0;
+  left: 0;
+  right: 0;
+  /* --app-h is measured in JS (see fitViewport in main.ts): iOS home-screen apps under-report 100%/100vh. */
+  height: var(--app-h, 100%);
   display: flex;
   justify-content: center;
+}
+/* If the browser still leaves a strip below the app, make it match the bar above it. */
+html {
+  background: #172a5a;
+}
+body {
+  background: #172a5a;
+}
+body[data-screen='battle'],
+html:has(body[data-screen='battle']) {
+  background: #23180e;
 }
 
 #app {
@@ -181,7 +195,7 @@ button {
   align-items: center;
   gap: 8px;
   padding: calc(var(--safe-top) + 8px) 10px 8px;
-  background: linear-gradient(180deg, rgba(10, 20, 50, 0.85), rgba(10, 20, 50, 0.55));
+  background: linear-gradient(180deg, #0c1838, #14234f);
   z-index: 5;
 }
 .avatar {
@@ -824,6 +838,11 @@ button {
 }
 .drag-card .card {
   width: 100%;
+}
+.drag-card.mini {
+  width: 44px;
+  opacity: 0.9;
+  transform: translate(-50%, 40%) scale(1) rotate(-4deg);
 }
 .drag-card.cancel .card {
   box-shadow:
@@ -1772,4 +1791,14 @@ button {
   font-weight: 800;
   font-size: 11px;
   color: #e9eefc;
+}
+
+/* Stop iOS from starting a native image drag / callout when a card is pressed and held (it cancels our pointer drag). */
+.hand-card,
+.hand-card * {
+  -webkit-user-drag: none;
+  -webkit-touch-callout: none;
+}
+.hand-card img {
+  pointer-events: none;
 }

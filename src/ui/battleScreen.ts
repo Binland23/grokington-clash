@@ -179,7 +179,7 @@ export function battleScreen(params: unknown): HTMLElement {
   let preview: DeployPreview | null = null;
   let powerPreview: PowerPreview | null = null;
   let powerArmed = false;
-  let drag: { i: number; el: HTMLElement; moved: boolean; sx: number; sy: number; overArena: boolean; lift: number } | null = null;
+  let drag: { i: number; pid: number; el: HTMLElement; moved: boolean; sx: number; sy: number; overArena: boolean; lift: number } | null = null;
   /** Touch only: the placement sits this far above the fingertip so the finger never hides it. */
   const LIFT_PX = 76;
   let tutorialEl: HTMLElement | null = null;
@@ -224,56 +224,71 @@ export function battleScreen(params: unknown): HTMLElement {
     if (finger && t.x > -90) preview.finger = finger;
   };
 
+  const dragMove = (e: PointerEvent) => {
+    if (!drag || e.pointerId !== drag.pid) return;
+    if (Math.hypot(e.clientX - drag.sx, e.clientY - drag.sy) > 8) drag.moved = true;
+    if (!drag.moved) return;
+    const rr = root.getBoundingClientRect();
+    drag.overArena = overArena(e.clientX, e.clientY);
+    slots[drag.i].classList.add('dragging');
+    drag.el.classList.toggle('cancel', !drag.overArena);
+    drag.el.classList.toggle('mini', drag.overArena);
+    // The card always rides the finger; over the field it shrinks so the lifted ghost stays readable.
+    drag.el.style.display = '';
+    drag.el.style.left = `${e.clientX - rr.left}px`;
+    drag.el.style.top = `${e.clientY - rr.top}px`;
+    if (drag.overArena) updatePreview(drag.i, e.clientX, e.clientY - drag.lift, drag.lift ? { x: e.clientX, y: e.clientY } : undefined);
+    else preview = null;
+  };
+  const dragEnd = (e: PointerEvent, cancelled: boolean) => {
+    if (!drag || e.pointerId !== drag.pid) return;
+    const d = drag;
+    drag = null;
+    window.removeEventListener('pointermove', dragMove);
+    window.removeEventListener('pointerup', dragUp);
+    window.removeEventListener('pointercancel', dragCancel);
+    d.el.remove();
+    slots[d.i].classList.remove('dragging');
+    preview = null;
+    if (cancelled) return;
+    if (d.moved && overArena(e.clientX, e.clientY)) {
+      if (tryDeploy(d.i, e.clientX, e.clientY - d.lift)) setSelected(null);
+    } else if (d.moved) {
+      setSelected(null);
+    }
+  };
+  const dragUp = (e: PointerEvent) => dragEnd(e, false);
+  const dragCancel = (e: PointerEvent) => dragEnd(e, true);
+
   slots.forEach((slot, i) => {
+    // iOS Safari only reliably keeps a finger-drag away from scrolling / system gestures if the
+    // touch events themselves are cancelled, on top of touch-action: none.
+    slot.addEventListener('touchstart', (e) => e.preventDefault(), { passive: false });
+    slot.addEventListener('touchmove', (e) => e.preventDefault(), { passive: false });
+    slot.addEventListener('dragstart', (e) => e.preventDefault());
+    slot.addEventListener('contextmenu', (e) => e.preventDefault());
     slot.addEventListener('pointerdown', (e) => {
-      if (!started || battle.phase === 'ended') return;
+      if (!started || battle.phase === 'ended' || drag) return;
       unlockAudio();
       e.preventDefault();
       powerArmed = false;
       powerPreview = null;
-      slot.setPointerCapture(e.pointerId);
+      try {
+        slot.setPointerCapture(e.pointerId);
+      } catch {
+        /* the window listeners below cover for a failed capture */
+      }
       const id = battle.players[0].hand[i];
       const el = h('div', { class: 'drag-card' }, cardView(id));
       el.style.display = 'none';
       root.appendChild(el);
-      drag = { i, el, moved: false, sx: e.clientX, sy: e.clientY, overArena: false, lift: e.pointerType === 'mouse' ? 0 : LIFT_PX };
+      drag = { i, pid: e.pointerId, el, moved: false, sx: e.clientX, sy: e.clientY, overArena: false, lift: e.pointerType === 'mouse' ? 0 : LIFT_PX };
+      window.addEventListener('pointermove', dragMove);
+      window.addEventListener('pointerup', dragUp);
+      window.addEventListener('pointercancel', dragCancel);
       setSelected(i);
       sfx('card');
     });
-    slot.addEventListener('pointermove', (e) => {
-      if (!drag || drag.i !== i) return;
-      if (Math.hypot(e.clientX - drag.sx, e.clientY - drag.sy) > 8) drag.moved = true;
-      if (!drag.moved) return;
-      const rr = root.getBoundingClientRect();
-      drag.overArena = overArena(e.clientX, e.clientY);
-      slot.classList.add('dragging');
-      drag.el.classList.toggle('cancel', !drag.overArena);
-      if (drag.overArena) {
-        drag.el.style.display = 'none';
-        updatePreview(i, e.clientX, e.clientY - drag.lift, drag.lift ? { x: e.clientX, y: e.clientY } : undefined);
-      } else {
-        drag.el.style.display = '';
-        drag.el.style.left = `${e.clientX - rr.left}px`;
-        drag.el.style.top = `${e.clientY - rr.top}px`;
-        preview = null;
-      }
-    });
-    const end = (e: PointerEvent, cancelled: boolean) => {
-      if (!drag || drag.i !== i) return;
-      const d = drag;
-      drag = null;
-      d.el.remove();
-      slot.classList.remove('dragging');
-      preview = null;
-      if (cancelled) return;
-      if (d.moved && overArena(e.clientX, e.clientY)) {
-        if (tryDeploy(i, e.clientX, e.clientY - d.lift)) setSelected(null);
-      } else if (d.moved) {
-        setSelected(null);
-      }
-    };
-    slot.addEventListener('pointerup', (e) => end(e, false));
-    slot.addEventListener('pointercancel', (e) => end(e, true));
   });
 
   canvas.addEventListener('pointerdown', (e) => {
