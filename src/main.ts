@@ -7,7 +7,7 @@ import { loadSprites } from './render/sprites';
 import { loadModels } from './render3d/models';
 import { app, go, initApp, registerScreen } from './ui/app';
 import { battleScreen } from './ui/battleScreen';
-import { h } from './ui/dom';
+import { loadingScreen } from './ui/loadingScreen';
 import { cardsScreen } from './ui/cardsScreen';
 import { gauntletScreen } from './ui/gauntletScreen';
 import { homeScreen } from './ui/homeScreen';
@@ -27,17 +27,12 @@ document.addEventListener('gesturestart', (e) => e.preventDefault());
 document.addEventListener('dblclick', (e) => e.preventDefault(), { passive: false });
 
 async function boot() {
-  const fill = h('i');
-  const status = h('div', { class: 'muted', style: 'font-weight:800' }, 'Summoning warriors...');
-  const loading = h('div', { class: 'loading' },
-    h('div', { class: 'logo' }, h('div', { class: 'l1' }, 'GROKINGTON'), h('div', { class: 'l2' }, 'CLASH')),
-    h('div', { class: 'bar' }, fill),
-    status,
-  );
+  const ls = loadingScreen();
+  const loading = ls.el;
   root.appendChild(loading);
   let fs = 0;
   let fm = 0;
-  const prog = () => (fill.style.width = `${Math.round((fs * 0.4 + fm * 0.6) * 100)}%`);
+  const prog = () => ls.setProgress(fs * 0.4 + fm * 0.6);
   await Promise.all([
     loadSprites((f) => {
       fs = f;
@@ -49,11 +44,11 @@ async function boot() {
     }),
     document.fonts?.load('20px "Lilita One"').catch(() => undefined),
   ]);
-  fill.style.width = '100%';
-  status.replaceWith(h('div', { class: 'tap' }, 'Tap to play'));
+  ls.setProgress(1);
+  ls.showTap();
   const start = () => {
     unlockAudio();
-    loading.remove();
+    ls.destroy();
     const params = new URLSearchParams(location.search);
     if (params.has('quick')) {
       startCampaignStage(Number(params.get('quick')) || 0);
@@ -62,5 +57,16 @@ async function boot() {
   loading.addEventListener('pointerup', start, { once: true });
   void app;
 }
+
+// iOS home-screen apps can resume with a stale or scrolled viewport; re-pin and re-measure.
+const refit = () => {
+  window.scrollTo(0, 0);
+  for (const d of [0, 120, 400]) setTimeout(() => window.dispatchEvent(new Event('resize')), d);
+};
+document.addEventListener('visibilitychange', () => {
+  if (!document.hidden) refit();
+});
+window.addEventListener('pageshow', refit);
+window.addEventListener('orientationchange', refit);
 
 void boot();
