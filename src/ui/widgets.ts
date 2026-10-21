@@ -4,13 +4,14 @@ import { h, img } from './dom';
 
 export function cardView(id: string, o: { level?: number; locked?: boolean; cost?: boolean; upgradable?: boolean } = {}): HTMLElement {
   const c = CARDS[id];
-  const cls = ['card', c.rarity, c.type === 'spell' ? 'spell' : '', o.locked ? 'locked' : ''].join(' ');
-  // Prefer the portrait rendered from the unit's 3D model so cards match the battlefield.
-  const art = (c.unit && spriteUrl(`card_${c.unit}`)) || spriteUrl(c.icon);
+  // Painted full-bleed illustration when we have one; otherwise the cut-out portrait/icon.
+  const full = spriteUrl(`cardart_${id}`);
+  const art = full || (c.unit && spriteUrl(`card_${c.unit}`)) || spriteUrl(c.icon);
+  const cls = ['card', c.rarity, c.type === 'spell' ? 'spell' : '', full ? 'full' : '', o.locked ? 'locked' : ''].join(' ');
   return h('div', { class: cls },
-    img(art, 'art', c.name),
-    o.cost === false ? null : h('div', { class: 'cost' }, String(c.cost)),
-    o.level !== undefined && !o.locked ? h('div', { class: 'lvl' }, `Lvl ${o.level}`) : null,
+    h('div', { class: 'window' }, img(art, 'art', c.name), h('i', { class: 'sheen' })),
+    o.cost === false ? null : h('div', { class: 'cost' }, h('span', null, String(c.cost))),
+    o.level !== undefined && !o.locked ? h('div', { class: 'lvl' }, `Level ${o.level}`) : null,
     o.upgradable ? h('div', { class: 'badge-up' }, '▲') : null,
   );
 }

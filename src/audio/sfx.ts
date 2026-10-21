@@ -23,6 +23,10 @@ type SfxName =
   | 'tick'
   | 'chest'
   | 'reward'
+  | 'whoosh'
+  | 'charge'
+  | 'upgrade'
+  | 'stat'
   | 'nope';
 
 let ctx: AudioContext | null = null;
@@ -237,6 +241,25 @@ export function sfx(name: SfxName, volume = 1): void {
     case 'reward':
       tone(880, 0.12, 'triangle', 0.12 * v, 1320);
       tone(1320, 0.18, 'sine', 0.08 * v, 1760, 0.06);
+      break;
+    case 'whoosh':
+      noise(0.22, 0.16 * v, 900, 'bandpass', 0, 0.8);
+      tone(300, 0.18, 'sine', 0.05 * v, 900);
+      break;
+    case 'charge':
+      // Rising build-up before the upgrade burst.
+      tone(160, 1.1, 'sawtooth', 0.05 * v, 900);
+      tone(240, 1.1, 'triangle', 0.07 * v, 1350);
+      noise(1.1, 0.12 * v, 2500, 'bandpass', 0, 2);
+      break;
+    case 'upgrade':
+      noise(0.5, 0.35 * v, 3000, 'highpass');
+      tone(90, 0.6, 'sine', 0.45 * v, 40);
+      [523, 659, 784, 1046, 1318].forEach((f, i) => tone(f, i === 4 ? 0.9 : 0.35, 'triangle', 0.13 * v, undefined, 0.05 + i * 0.06));
+      [1568, 2093].forEach((f, i) => tone(f, 0.6, 'sine', 0.05 * v, undefined, 0.35 + i * 0.1));
+      break;
+    case 'stat':
+      tone(1046, 0.08, 'triangle', 0.08 * v, 1568);
       break;
   }
 }

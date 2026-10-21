@@ -85,6 +85,94 @@
   "h": 304,
   "w": 320
  },
+ "cardart_archers": {
+  "h": 480,
+  "w": 400
+ },
+ "cardart_arrows": {
+  "h": 480,
+  "w": 400
+ },
+ "cardart_berserker": {
+  "h": 480,
+  "w": 400
+ },
+ "cardart_blimp": {
+  "h": 480,
+  "w": 400
+ },
+ "cardart_boarrider": {
+  "h": 480,
+  "w": 400
+ },
+ "cardart_boneswarm": {
+  "h": 480,
+  "w": 400
+ },
+ "cardart_brute": {
+  "h": 480,
+  "w": 400
+ },
+ "cardart_fireorb": {
+  "h": 480,
+  "w": 400
+ },
+ "cardart_frost": {
+  "h": 480,
+  "w": 400
+ },
+ "cardart_gargoyles": {
+  "h": 480,
+  "w": 400
+ },
+ "cardart_gunner": {
+  "h": 480,
+  "w": 400
+ },
+ "cardart_imphut": {
+  "h": 480,
+  "w": 400
+ },
+ "cardart_imps": {
+  "h": 480,
+  "w": 400
+ },
+ "cardart_ironclad": {
+  "h": 480,
+  "w": 400
+ },
+ "cardart_knight": {
+  "h": 480,
+  "w": 400
+ },
+ "cardart_lancer": {
+  "h": 480,
+  "w": 400
+ },
+ "cardart_mending": {
+  "h": 480,
+  "w": 400
+ },
+ "cardart_pyromancer": {
+  "h": 480,
+  "w": 400
+ },
+ "cardart_spark": {
+  "h": 480,
+  "w": 400
+ },
+ "cardart_turret": {
+  "h": 480,
+  "w": 400
+ },
+ "cardart_wardrums": {
+  "h": 480,
+  "w": 400
+ },
+ "cardart_wyrmling": {
+  "h": 480,
+  "w": 400
+ },
  "chest_gold": {
   "h": 265,
   "w": 300

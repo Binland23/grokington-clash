@@ -8,6 +8,7 @@ import { canUpgrade, upgrade, upgradeCost } from '../meta/profile';
 import { spriteUrl } from '../render/sprites';
 import { app, go, modal, navbar, save, toast, topbar } from './app';
 import { fmt, h, img } from './dom';
+import { flyCard, upgradeCeremony } from './cardFx';
 import { cardStats, cardView } from './widgets';
 
 let swapCard: string | null = null;
@@ -20,7 +21,7 @@ export function cardsScreen(): HTMLElement {
     deckGrid.appendChild(
       h('button', {
         class: 'slot',
-        onclick: () => {
+        onclick: (e: Event) => {
           sfx('click');
           if (swapCard) {
             const i = p.deck.indexOf(id);
@@ -28,7 +29,7 @@ export function cardsScreen(): HTMLElement {
             swapCard = null;
             save();
             go('cards');
-          } else cardModal(id);
+          } else cardModal(id, (e.currentTarget as Element).querySelector('.card'));
         },
       }, cardView(id, { level: pr.level, upgradable: canUpgrade(p, id) }), copiesBar(id)),
     );
@@ -58,7 +59,7 @@ export function cardsScreen(): HTMLElement {
   const locked = CARD_IDS.filter((id) => !p.cards[id]);
   const coll = h('div', { class: 'coll-grid' },
     ...owned.map((id) =>
-      h('button', { class: 'slot', onclick: () => { sfx('click'); cardModal(id); } },
+      h('button', { class: 'slot', onclick: (e: Event) => { sfx('click'); cardModal(id, (e.currentTarget as Element).querySelector('.card')); } },
         cardView(id, { level: p.cards[id].level, upgradable: canUpgrade(p, id) }), copiesBar(id)),
     ),
     ...locked.map((id) =>
@@ -97,7 +98,7 @@ function copiesBar(id: string): HTMLElement {
   return h('div', { class: `copies-bar ${f >= 1 ? 'full' : ''}` }, h('i', { style: `width:${f * 100}%` }), h('span', null, `${pr.copies}/${cost.copies}`));
 }
 
-function cardModal(id: string): void {
+function cardModal(id: string, from?: Element | null): void {
   const p = app.profile;
   const c = CARDS[id];
   const pr = p.cards[id];
@@ -107,13 +108,15 @@ function cardModal(id: string): void {
   const can = canUpgrade(p, id);
   const unit = c.unit ? UNITS[c.unit] : null;
   const show3d = !!unit && hasModel(unit.id === 'sentinel' ? 'brute' : unit.id);
-  const stage = show3d ? h('div', { class: 'viewer3d' }) : null;
+  const scene = spriteUrl(`cardart_${id}`);
+  const stage = show3d ? h('div', { class: 'viewer3d', style: scene ? `--scene:url(${scene})` : '' }) : null;
   let unmount: (() => void) | null = null;
+  const hero = h('div', { class: 'cm-card' }, cardView(id, { level: pr.level }));
   const m = modal(
-    h('div', null,
+    h('div', { class: `card-modal ${c.rarity}` },
       stage,
-      h('div', { class: 'row', style: 'align-items:flex-start' },
-        h('div', { style: 'width:110px;flex:none;container-type:inline-size' }, cardView(id, { level: pr.level })),
+      h('div', { class: 'row cm-head', style: 'align-items:flex-start' },
+        h('div', { class: 'cm-hero' }, h('i', { class: 'cm-rays' }), hero),
         h('div', { style: 'flex:1' },
           h('div', { class: 'display stroke', style: 'font-size:24px;line-height:1' }, c.name),
           h('div', { style: `font-weight:800;font-size:12px;text-transform:uppercase;color:var(--${c.rarity})` }, `${c.rarity} ${c.type}`),
@@ -130,13 +133,11 @@ function cardModal(id: string): void {
               class: `btn ${can ? 'btn-green' : 'btn-gray'}`,
               disabled: !can,
               onclick: () => {
+                const oldLevel = pr.level;
                 if (upgrade(p, id)) {
-                  sfx('reward');
-                  sfx('crown');
                   save();
                   m.close();
-                  toast(`${c.name} is now level ${p.cards[id].level}!`);
-                  go('cards');
+                  upgradeCeremony(id, oldLevel, p.cards[id].level, () => go('cards'));
                 }
               },
             }, h('div', null, 'Upgrade'), h('div', { style: 'display:flex;align-items:center;gap:3px;justify-content:center;font-size:14px' }, img(spriteUrl('ui_gold'), '', ''), fmt(cost.gold)))
@@ -158,6 +159,7 @@ function cardModal(id: string): void {
   );
   // Gold icon inside the button.
   m.el.querySelectorAll('.btn img').forEach((el) => ((el as HTMLElement).style.cssText = 'width:20px;height:20px;object-fit:contain'));
+  flyCard(id, from, hero.firstElementChild as HTMLElement, pr.level);
   if (stage && unit) {
     unmount = mountViewer(stage, unit);
     const obs = new MutationObserver(() => {

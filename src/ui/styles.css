@@ -455,24 +455,50 @@ button {
 
 /* ---------------------------------------------------------------- cards */
 
+/* A card is a metal rarity frame (.card) around an inset art window (.window). */
 .card {
   position: relative;
   aspect-ratio: 5 / 6;
-  border-radius: 12px;
-  overflow: hidden;
-  background: linear-gradient(180deg, #5d8fe0, #2c58b0);
-  border: 3px solid var(--common);
+  border-radius: 11% / 9%;
+  background: linear-gradient(155deg, #f2f8ff 0%, #a9c2e6 22%, #5f80b6 48%, #cfe0f7 70%, #5a79ad 100%);
   box-shadow:
-    0 3px 0 rgba(0, 0, 0, 0.45),
-    inset 0 0 0 2px rgba(0, 0, 0, 0.35);
+    0 3px 0 rgba(0, 0, 0, 0.5),
+    0 4px 8px rgba(0, 0, 0, 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.85),
+    inset 0 -2px 0 rgba(0, 0, 0, 0.35),
+    inset 0 0 0 1px rgba(20, 30, 60, 0.55);
 }
 .card.rare {
-  border-color: var(--rare);
-  background: linear-gradient(180deg, #f2a75a, #b8611c);
+  background: linear-gradient(155deg, #fff4cc 0%, #ffc15a 22%, #d9741a 48%, #ffdc8a 70%, #b35a0f 100%);
 }
 .card.epic {
-  border-color: var(--epic);
-  background: linear-gradient(180deg, #b77ff0, #6a2fb8);
+  background: linear-gradient(155deg, #f8e2ff 0%, #d39bff 22%, #7c2fd0 48%, #e6bcff 70%, #5a1aa3 100%);
+}
+.card .window {
+  position: absolute;
+  inset: 5.5%;
+  border-radius: 8% / 6.5%;
+  overflow: hidden;
+  background: radial-gradient(120% 90% at 50% 25%, #6fa0ee, #2c58b0 60%, #1a336e);
+}
+.card.rare .window {
+  background: radial-gradient(120% 90% at 50% 25%, #f6b46a, #b8611c 60%, #6e3409);
+}
+.card.epic .window {
+  background: radial-gradient(120% 90% at 50% 25%, #c590f5, #6a2fb8 60%, #3a1470);
+}
+/* Bevel + vignette drawn over the art. */
+.card .window::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  box-shadow:
+    inset 0 0 0 1.5px rgba(10, 14, 35, 0.75),
+    inset 0 2px 0 1.5px rgba(255, 255, 255, 0.18),
+    inset 0 0 14px rgba(0, 0, 0, 0.45);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.16) 0%, rgba(255, 255, 255, 0) 34%, rgba(0, 0, 0, 0) 62%, rgba(0, 0, 0, 0.42) 100%);
 }
 .card .art {
   position: absolute;
@@ -483,57 +509,138 @@ button {
   object-position: center 30%;
   filter: drop-shadow(0 3px 2px rgba(0, 0, 0, 0.45));
 }
-.card.spell .art {
+.card.spell:not(.full) .art {
   inset: 10%;
   width: 80%;
   height: 80%;
 }
+.card.full .art {
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 20%;
+  filter: none;
+}
+/* Glossy light sweep. Epics shimmer continuously, rares now and then. */
+.card .sheen {
+  position: absolute;
+  inset: -20% -60%;
+  pointer-events: none;
+  background: linear-gradient(105deg, transparent 42%, rgba(255, 255, 255, 0.38) 50%, transparent 58%);
+  transform: translateX(-70%);
+  opacity: 0;
+}
+.card.epic:not(.locked) .sheen {
+  animation: cardSheen 3.2s ease-in-out infinite;
+}
+.card.rare:not(.locked) .sheen {
+  animation: cardSheen 6s ease-in-out infinite 1.2s;
+}
+@keyframes cardSheen {
+  0%,
+  55% {
+    transform: translateX(-70%);
+    opacity: 0;
+  }
+  60% {
+    opacity: 1;
+  }
+  85%,
+  100% {
+    transform: translateX(70%);
+    opacity: 0;
+  }
+}
+/* Elixir drop. */
 .card .cost {
   position: absolute;
-  top: -2px;
-  left: -2px;
-  width: 30%;
+  top: -5%;
+  left: -6%;
+  width: 31%;
   aspect-ratio: 1;
   display: grid;
   place-items: center;
-  background: radial-gradient(circle at 35% 30%, #ff9cf0, #c22bd6 55%, #7d128f);
-  border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+  border-radius: 50% 0 50% 50%;
+  transform: rotate(-45deg);
+  background: radial-gradient(circle at 40% 60%, #ffc2f6 0%, #e04ce8 38%, #9b15b0 75%, #5e0870 100%);
+  border: 2px solid #fff;
+  box-shadow:
+    0 2px 0 rgba(0, 0, 0, 0.45),
+    inset 0 -3px 4px rgba(60, 0, 80, 0.5),
+    inset 2px 2px 3px rgba(255, 255, 255, 0.6);
+  z-index: 2;
+}
+.card .cost span {
+  transform: rotate(45deg) translateY(4%);
   font-family: var(--display);
-  font-size: clamp(11px, 4.2cqw, 20px);
+  font-size: clamp(11px, 13cqw, 22px);
   color: #fff;
-  text-shadow: 0 2px 0 rgba(0, 0, 0, 0.5);
-  border: 2px solid rgba(255, 255, 255, 0.85);
+  text-shadow:
+    0 2px 0 rgba(60, 0, 70, 0.8),
+    0 0 3px rgba(60, 0, 70, 0.6);
 }
 .card .lvl {
   position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
+  bottom: 5.5%;
+  left: 5.5%;
+  right: 5.5%;
   text-align: center;
   font-family: var(--display);
-  font-size: 12px;
-  padding: 1px 0 2px;
-  background: linear-gradient(180deg, rgba(0, 0, 0, 0), rgba(0, 0, 0, 0.7));
-  text-shadow: 0 1px 0 rgba(0, 0, 0, 0.6);
-}
-.card.locked .art {
-  filter: brightness(0) opacity(0.45);
+  font-size: clamp(10px, 11cqw, 15px);
+  padding: 3% 0 4%;
+  border-radius: 0 0 8% 8% / 0 0 40% 40%;
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0), rgba(5, 10, 30, 0.85) 55%);
+  color: #fff;
+  text-shadow:
+    0 1px 0 #000,
+    0 0 2px #000;
+  z-index: 1;
 }
 .card.locked {
-  border-color: #4a5677;
-  background: linear-gradient(180deg, #3b4766, #262f48);
+  background: linear-gradient(155deg, #a4acbf 0%, #6c7690 30%, #3e4660 55%, #7b849c 75%, #343b52 100%);
+}
+.card.locked .window {
+  background: #1c2338;
+}
+.card.locked .art {
+  filter: grayscale(1) brightness(0.32) contrast(1.1);
+}
+.card.locked .window::before {
+  content: '🔒';
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  font-size: clamp(14px, 26cqw, 34px);
+  z-index: 1;
+  filter: drop-shadow(0 2px 2px rgba(0, 0, 0, 0.6));
 }
 .card .badge-up {
   position: absolute;
-  top: 3px;
-  right: 3px;
-  background: var(--green);
-  border-radius: 6px;
-  font-size: 11px;
-  padding: 0 4px;
+  top: -4%;
+  right: -4%;
+  width: 26%;
+  aspect-ratio: 1;
+  display: grid;
+  place-items: center;
+  background: radial-gradient(circle at 40% 35%, #b6ff8a, #4cc22a 60%, #2a7d12);
+  border-radius: 50%;
+  font-size: clamp(9px, 11cqw, 14px);
   font-family: var(--display);
   border: 2px solid #fff;
-  animation: pulse 1s infinite;
+  box-shadow: 0 2px 0 rgba(0, 0, 0, 0.4);
+  z-index: 2;
+  animation: badgeBounce 1.1s ease-in-out infinite;
+}
+@keyframes badgeBounce {
+  0%,
+  100% {
+    transform: translateY(0) scale(1);
+  }
+  50% {
+    transform: translateY(-12%) scale(1.08);
+  }
 }
 .copies-bar {
   height: 14px;
@@ -1755,6 +1862,29 @@ button {
   box-shadow: inset 0 -20px 40px rgba(0, 0, 0, 0.35);
   overflow: hidden;
 }
+.viewer3d {
+  position: relative;
+  isolation: isolate;
+}
+/* The card's painted scene, blurred and darkened, as a stage behind the 3D model. */
+.viewer3d::before {
+  content: '';
+  position: absolute;
+  inset: -12px;
+  z-index: -1;
+  background: var(--scene, none) center 30% / cover;
+  filter: blur(6px) brightness(0.55) saturate(1.2);
+}
+.viewer3d::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  border-radius: inherit;
+  box-shadow:
+    inset 0 0 0 2px rgba(255, 255, 255, 0.12),
+    inset 0 -30px 40px rgba(0, 0, 0, 0.45);
+}
 
 .map-band {
   position: absolute;
@@ -1801,4 +1931,404 @@ button {
 }
 .hand-card img {
   pointer-events: none;
+}
+
+/* ---------------------------------------------------------------- card inspect */
+
+.fly-card {
+  position: absolute;
+  z-index: 60;
+  pointer-events: none;
+  container-type: inline-size;
+  transform-origin: 0 0;
+  filter: drop-shadow(0 10px 14px rgba(0, 0, 0, 0.5));
+}
+.fly-card .card {
+  width: 100%;
+}
+.card-modal {
+  --cm-glow: #8cc0ff;
+}
+.card-modal.rare {
+  --cm-glow: #ffb347;
+}
+.card-modal.epic {
+  --cm-glow: #d27bff;
+}
+.card-modal .cm-hero {
+  position: relative;
+  width: 124px;
+  flex: none;
+}
+.card-modal .cm-card {
+  position: relative;
+  container-type: inline-size;
+  z-index: 1;
+}
+.card-modal .cm-card .card.landed {
+  animation: cmLand 0.45s ease-out;
+}
+@keyframes cmLand {
+  0% {
+    box-shadow:
+      0 0 0 3px #fff,
+      0 0 30px 8px var(--cm-glow);
+  }
+}
+/* Slowly turning light rays behind the inspected card. */
+.card-modal .cm-rays {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 260%;
+  aspect-ratio: 1;
+  translate: -50% -50%;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle, color-mix(in srgb, var(--cm-glow) 55%, transparent) 0%, transparent 55%),
+    repeating-conic-gradient(from 0deg, color-mix(in srgb, var(--cm-glow) 30%, transparent) 0deg 8deg, transparent 8deg 22deg);
+  mask: radial-gradient(circle, #000 20%, transparent 62%);
+  -webkit-mask: radial-gradient(circle, #000 20%, transparent 62%);
+  animation: raysSpin 18s linear infinite;
+  pointer-events: none;
+}
+@keyframes raysSpin {
+  to {
+    rotate: 360deg;
+  }
+}
+.modal:has(.card-modal) {
+  animation: cmPanel 0.32s cubic-bezier(0.2, 1.3, 0.4, 1);
+}
+@keyframes cmPanel {
+  from {
+    transform: translateY(40px) scale(0.92);
+    opacity: 0;
+  }
+}
+.card-modal > * {
+  animation: cmRise 0.4s cubic-bezier(0.2, 1.2, 0.4, 1) backwards;
+}
+.card-modal > :nth-child(2) {
+  animation-delay: 0.06s;
+}
+.card-modal > :nth-child(3) {
+  animation-delay: 0.12s;
+}
+.card-modal > :nth-child(4) {
+  animation-delay: 0.18s;
+}
+.card-modal > :nth-child(5) {
+  animation-delay: 0.24s;
+}
+.card-modal .stat-table .stat {
+  animation: cmRise 0.35s ease-out backwards 0.16s;
+}
+.card-modal .stat-table .stat:nth-child(2n) {
+  animation-delay: 0.22s;
+}
+@keyframes cmRise {
+  from {
+    transform: translateY(14px);
+    opacity: 0;
+  }
+}
+
+/* ---------------------------------------------------------------- upgrade ceremony */
+
+.upg-stage {
+  position: absolute;
+  inset: 0;
+  z-index: 70;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  background: radial-gradient(circle at 50% 42%, color-mix(in srgb, var(--glow) 35%, #0b1230) 0%, #070b1f 70%);
+  animation: fadeIn 0.2s ease-out;
+}
+.upg-stage.out {
+  animation: upgOut 0.22s ease-in forwards;
+}
+@keyframes upgOut {
+  to {
+    opacity: 0;
+    transform: scale(1.04);
+  }
+}
+.upg-rays {
+  position: absolute;
+  left: 50%;
+  top: 40%;
+  width: 180vmax;
+  height: 180vmax;
+  translate: -50% -50%;
+  scale: 0.5;
+  background: repeating-conic-gradient(from 0deg, color-mix(in srgb, var(--glow) 28%, transparent) 0deg 7deg, transparent 7deg 18deg);
+  mask: radial-gradient(circle, #000 0%, transparent 45%);
+  -webkit-mask: radial-gradient(circle, #000 0%, transparent 45%);
+  opacity: 0.35;
+  transition:
+    opacity 0.4s,
+    scale 0.6s cubic-bezier(0.2, 1.4, 0.4, 1);
+  animation: raysSpin 14s linear infinite;
+}
+.upg-stage.burst .upg-rays {
+  opacity: 1;
+  scale: 1;
+}
+.upg-center {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 0 24px;
+}
+.upg-title {
+  font-size: 40px;
+  color: #fff;
+  height: 48px;
+  margin-bottom: 12px;
+  text-shadow:
+    0 3px 0 #000,
+    0 0 18px var(--glow);
+  -webkit-text-stroke: 1.5px #1a1030;
+  opacity: 0;
+  transform: scale(2.2);
+}
+.upg-stage.burst .upg-title {
+  animation: upgTitle 0.45s cubic-bezier(0.2, 1.6, 0.4, 1) forwards;
+}
+@keyframes upgTitle {
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+.upg-hero {
+  position: relative;
+  width: min(46%, 200px);
+}
+.upg-card {
+  position: relative;
+  container-type: inline-size;
+  z-index: 1;
+  animation: upgDrop 0.45s cubic-bezier(0.2, 1.4, 0.4, 1);
+}
+@keyframes upgDrop {
+  from {
+    transform: translateY(-60vh) rotate(-12deg) scale(0.6);
+  }
+}
+.upg-card .card {
+  width: 100%;
+}
+.upg-card.charging {
+  animation:
+    upgDrop 0.45s cubic-bezier(0.2, 1.4, 0.4, 1),
+    upgCharge 0.7s ease-in 0.45s forwards;
+}
+.upg-card.charging .card {
+  animation: upgShake 0.07s linear infinite 0.6s;
+}
+@keyframes upgCharge {
+  to {
+    transform: scale(0.92);
+    filter: brightness(1.9) saturate(1.3) drop-shadow(0 0 22px var(--glow));
+  }
+}
+@keyframes upgShake {
+  0%,
+  100% {
+    transform: translate(0, 0) rotate(0);
+  }
+  25% {
+    transform: translate(-2px, 1px) rotate(-1deg);
+  }
+  75% {
+    transform: translate(2px, -1px) rotate(1deg);
+  }
+}
+.upg-card.popped {
+  animation: upgPop 0.6s cubic-bezier(0.2, 1.8, 0.4, 1);
+}
+.upg-card.popped .card {
+  box-shadow:
+    0 0 0 3px #fff,
+    0 0 40px 10px var(--glow),
+    0 6px 0 rgba(0, 0, 0, 0.5);
+}
+@keyframes upgPop {
+  0% {
+    transform: scale(0.85);
+    filter: brightness(3);
+  }
+  45% {
+    transform: scale(1.18);
+    filter: brightness(1.5);
+  }
+  100% {
+    transform: scale(1);
+    filter: brightness(1);
+  }
+}
+.card .lvl.lvl-pop {
+  animation: lvlPop 0.6s cubic-bezier(0.2, 1.8, 0.4, 1);
+  color: #fff6b0;
+}
+@keyframes lvlPop {
+  0% {
+    transform: scale(2.2);
+  }
+}
+.upg-fx {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 0;
+  height: 0;
+  z-index: 2;
+  pointer-events: none;
+}
+.upg-spark {
+  position: absolute;
+  left: 0;
+  top: 0;
+  border-radius: 50%;
+  box-shadow: 0 0 8px 2px var(--glow);
+}
+.upg-ring {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 60%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  border: 6px solid #fff;
+  box-shadow:
+    0 0 20px var(--glow),
+    inset 0 0 20px var(--glow);
+  transform: translate(-50%, -50%) scale(0);
+  opacity: 0;
+  pointer-events: none;
+}
+.upg-stage.burst .upg-ring {
+  animation: upgRing 0.7s cubic-bezier(0.1, 0.7, 0.3, 1);
+}
+@keyframes upgRing {
+  0% {
+    transform: translate(-50%, -50%) scale(0.3);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(4);
+    opacity: 0;
+    border-width: 1px;
+  }
+}
+.upg-flash {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 50% 42%, #fff 0%, color-mix(in srgb, var(--glow) 60%, #fff) 40%, transparent 80%);
+  opacity: 0;
+  pointer-events: none;
+}
+.upg-stage.burst .upg-flash {
+  animation: upgFlash 0.55s ease-out;
+}
+@keyframes upgFlash {
+  0% {
+    opacity: 0.95;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+.upg-name {
+  font-size: 26px;
+  opacity: 0;
+}
+.upg-stage.burst .upg-name {
+  animation: upgName 0.4s ease-out 0.25s forwards;
+}
+@keyframes upgName {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.upg-stats {
+  width: 100%;
+  max-width: 320px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  min-height: 120px;
+}
+.upg-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  font-weight: 800;
+  font-size: 14px;
+  animation: upgRow 0.35s cubic-bezier(0.2, 1.4, 0.4, 1);
+}
+.upg-row .k {
+  flex: 1;
+  color: var(--muted);
+}
+.upg-row .v {
+  font-family: var(--display);
+  font-size: 18px;
+  font-weight: normal;
+}
+.upg-row.changed .v {
+  color: #fff;
+  text-shadow: 0 0 10px var(--glow);
+}
+.upg-row .up {
+  font-family: var(--display);
+  font-weight: normal;
+  color: var(--green);
+  animation: upgUp 0.5s ease-out backwards 0.1s;
+}
+@keyframes upgRow {
+  from {
+    transform: translateX(-40px);
+    opacity: 0;
+  }
+}
+@keyframes upgUp {
+  from {
+    transform: translateY(6px) scale(1.5);
+    opacity: 0;
+  }
+}
+.upg-tap {
+  position: absolute;
+  bottom: calc(28px + var(--safe-bottom));
+  left: 0;
+  right: 0;
+  text-align: center;
+  font-family: var(--display);
+  font-size: 18px;
+  color: #fff;
+  text-shadow: 0 2px 0 #000;
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+.upg-tap.on {
+  opacity: 1;
+  animation: pulse 1.2s infinite;
 }
