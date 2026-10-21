@@ -2,6 +2,7 @@ import { setMusicEnabled, setSfxEnabled, sfx } from '../audio/sfx';
 import { loadProfile, resetProfile, saveProfile, type Profile } from '../meta/profile';
 import { spriteUrl } from '../render/sprites';
 import { clear, fmt, h, img } from './dom';
+import { debugHudEnabled, setDebugHud } from './debugHud';
 import { loadingScreen } from './loadingScreen';
 import { createTabs, isTab } from './tabs';
 
@@ -218,6 +219,16 @@ export function openSettings(): void {
       row('Sound effects', 'sfx'),
       row('Music', 'music'),
       row('Vibration', 'vibrate'),
+      (() => {
+        const sw = h('button', { class: `switch ${debugHudEnabled() ? 'on' : ''}` });
+        sw.onclick = () => {
+          const on = !debugHudEnabled();
+          setDebugHud(on);
+          sw.classList.toggle('on', on);
+          sfx('click');
+        };
+        return h('div', { class: 'toggle' }, 'Debug info', sw);
+      })(),
       h('div', { class: 'toggle' }, 'Player name',
         h('button', {
           class: 'btn btn-blue btn-sm',
