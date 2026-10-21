@@ -182,6 +182,13 @@ export function battleScreen(params: unknown): HTMLElement {
   let drag: { i: number; pid: number; el: HTMLElement; moved: boolean; sx: number; sy: number; overArena: boolean; lift: number } | null = null;
   /** Touch only: the placement sits this far above the fingertip so the finger never hides it. */
   const LIFT_PX = 76;
+  /** The lift fades to zero over the last stretch above the arena's bottom edge, so the bottom row stays reachable. */
+  const LIFT_RAMP_PX = 90;
+  const liftAt = (base: number, clientY: number) => {
+    if (!base) return 0;
+    const k = (arena.getBoundingClientRect().bottom - clientY) / LIFT_RAMP_PX;
+    return base * Math.max(0, Math.min(1, k));
+  };
   let tutorialEl: HTMLElement | null = null;
 
   const overArena = (cx: number, cy: number) => {
@@ -237,7 +244,7 @@ export function battleScreen(params: unknown): HTMLElement {
     drag.el.style.display = '';
     drag.el.style.left = `${e.clientX - rr.left}px`;
     drag.el.style.top = `${e.clientY - rr.top}px`;
-    if (drag.overArena) updatePreview(drag.i, e.clientX, e.clientY - drag.lift, drag.lift ? { x: e.clientX, y: e.clientY } : undefined);
+    if (drag.overArena) updatePreview(drag.i, e.clientX, e.clientY - liftAt(drag.lift, e.clientY), drag.lift ? { x: e.clientX, y: e.clientY } : undefined);
     else preview = null;
   };
   const dragEnd = (e: PointerEvent, cancelled: boolean) => {
@@ -252,7 +259,7 @@ export function battleScreen(params: unknown): HTMLElement {
     preview = null;
     if (cancelled) return;
     if (d.moved && overArena(e.clientX, e.clientY)) {
-      if (tryDeploy(d.i, e.clientX, e.clientY - d.lift)) setSelected(null);
+      if (tryDeploy(d.i, e.clientX, e.clientY - liftAt(d.lift, e.clientY))) setSelected(null);
     } else if (d.moved) {
       setSelected(null);
     }
