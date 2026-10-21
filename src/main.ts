@@ -60,11 +60,9 @@ async function boot() {
 
 // iOS home-screen apps can resume with a stale or scrolled viewport; re-pin and re-measure.
 const fitViewport = () => {
-  const standalone = (navigator as unknown as { standalone?: boolean }).standalone === true || matchMedia('(display-mode: standalone), (display-mode: fullscreen)').matches;
-  let hgt = Math.max(window.innerHeight, window.visualViewport?.height ?? 0);
-  // Home-screen apps can report a viewport shorter than the screen (blank strip under the nav bar).
-  if (standalone && screen.height > hgt && screen.height - hgt < 120) hgt = screen.height;
-  document.documentElement.style.setProperty('--app-h', `${hgt}px`);
+  // Trust the viewport the browser actually shows. (Forcing screen.height made the app taller than the visible area.)
+  const hgt = window.visualViewport?.height ?? window.innerHeight;
+  document.documentElement.style.setProperty('--app-h', `${Math.round(hgt)}px`);
 };
 fitViewport();
 window.addEventListener('resize', fitViewport);
