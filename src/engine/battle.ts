@@ -703,7 +703,7 @@ export class Battle {
       this.events.push({ type: 'impact', x: t.x, y: t.y, radius: 1.2, fx: 'bomb', team: u.team });
       return;
     }
-    this.damage(t, dmg, u.team, true);
+    this.damage(t, dmg, u.team, true, u);
   }
 
   /** Damage enemies of `team` within radius. */
@@ -712,17 +712,18 @@ export class Battle {
       if (e.dead || e.team === team) continue;
       if (e.flying ? !hitsAir : !hitsGround) continue;
       if (dist(e, { x, y }) <= radius + e.s.radius * 0.7) {
-        this.damage(e, e.kind === 'tower' ? dmg * towerMul : dmg, team);
+        this.damage(e, e.kind === 'tower' ? dmg * towerMul : dmg, team, false, { x, y });
       }
     }
   }
 
-  damage(t: Unit, amount: number, by: Team, heavy = false): void {
+  /** `src` is where the blow came from (attacker or blast centre); it only steers the hit reaction. */
+  damage(t: Unit, amount: number, by: Team, heavy = false, src?: { x: number; y: number }): void {
     if (t.dead || amount <= 0) return;
     t.hp -= amount;
     t.flash = 0.12;
     this.players[by].damageDealt += amount;
-    this.events.push({ type: 'hit', x: t.x, y: t.y, amount: Math.round(amount), targetId: t.id, heavy: heavy || amount > 200, air: t.flying });
+    this.events.push({ type: 'hit', x: t.x, y: t.y, amount: Math.round(amount), targetId: t.id, heavy: heavy || amount > 200, air: t.flying, fromX: src?.x, fromY: src?.y });
     if (t.kind === 'tower' && t.towerType === 'keep' && !t.active) this.wakeKeep(t.team);
     if (t.hp <= 0) this.kill(t, by);
   }
@@ -890,7 +891,7 @@ export class Battle {
       if (e.dead || e.team === team) continue;
       const d = dist(e, { x, y });
       if (d > radius + e.s.radius * 0.7) continue;
-      if (o.damage) this.damage(e, e.kind === 'tower' ? o.damage * (o.towerMul ?? 1) : o.damage, team);
+      if (o.damage) this.damage(e, e.kind === 'tower' ? o.damage * (o.towerMul ?? 1) : o.damage, team, false, { x, y });
       if (e.dead) continue;
       if (o.stun && e.kind !== 'tower') {
         e.stunT = Math.max(e.stunT, o.stun);
@@ -947,7 +948,7 @@ export class Battle {
       return;
     }
     const t = p.target;
-    if (t && !t.dead) this.damage(t, t.kind === 'tower' ? p.damage * p.towerMul : p.damage, p.team);
+    if (t && !t.dead) this.damage(t, t.kind === 'tower' ? p.damage * p.towerMul : p.damage, p.team, false, { x: p.sx, y: p.sy });
   }
 
   private updateEffects(dt: number): void {

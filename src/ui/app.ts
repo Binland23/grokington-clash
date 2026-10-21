@@ -38,7 +38,7 @@ export function onDispose(el: HTMLElement, fn: () => void): void {
   (el as unknown as { __dispose?: () => void }).__dispose = fn;
 }
 
-export function go(name: ScreenName, params?: unknown): void {
+function swapScreen(name: ScreenName, params?: unknown): void {
   const fn = screens[name];
   if (!fn) throw new Error(`no screen ${name}`);
   if (current) {
@@ -49,6 +49,39 @@ export function go(name: ScreenName, params?: unknown): void {
   const el = fn(params);
   app.root.appendChild(el);
   current = { name, el };
+}
+
+/** Building the 3D arena blocks the main thread, so paint a loading screen first. */
+let loaderUp = false;
+function goWithLoader(name: ScreenName, params?: unknown): void {
+  if (loaderUp) return;
+  loaderUp = true;
+  const loader = h('div', { class: 'loading loading-battle' },
+    h('div', { class: 'logo' }, h('div', { class: 'l1' }, 'GROKINGTON'), h('div', { class: 'l2' }, 'CLASH')),
+    h('div', { class: 'spinner' }),
+    h('div', { class: 'muted', style: 'font-weight:800' }, 'Preparing the battlefield...'),
+  );
+  app.root.appendChild(loader);
+  // Two frames: the first commits the loader, the second guarantees it was painted before we block.
+  requestAnimationFrame(() =>
+    requestAnimationFrame(() => {
+      swapScreen(name, params);
+      app.root.appendChild(loader);
+      // The battle's first frame compiles shaders; keep the loader up until it has rendered.
+      requestAnimationFrame(() =>
+        requestAnimationFrame(() => {
+          loader.remove();
+          loaderUp = false;
+        }),
+      );
+    }),
+  );
+}
+
+export function go(name: ScreenName, params?: unknown): void {
+  if (!screens[name]) throw new Error(`no screen ${name}`);
+  if (name === 'battle') goWithLoader(name, params);
+  else swapScreen(name, params);
 }
 
 export function currentScreen(): ScreenName | null {

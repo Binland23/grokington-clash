@@ -132,7 +132,7 @@ export const DEFAULT_MODS: BattleMods = {
 export type BattleEvent =
   | { type: 'deploy'; team: Team; x: number; y: number; card: string }
   | { type: 'spawn'; id: number }
-  | { type: 'hit'; x: number; y: number; amount: number; targetId: number; heavy: boolean; air: boolean }
+  | { type: 'hit'; x: number; y: number; amount: number; targetId: number; heavy: boolean; air: boolean; fromX?: number; fromY?: number }
   | { type: 'heal'; x: number; y: number; amount: number }
   | { type: 'attack'; id: number; kind: ProjectileKind | 'melee' }
   | { type: 'death'; x: number; y: number; id: number; kind: EntityKind; sprite: string; team: Team; big: boolean }

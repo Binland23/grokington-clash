@@ -6,6 +6,7 @@ import { POWERS } from '../engine/powers';
 import type { BattleEvent, BattleMods } from '../engine/types';
 import { kingLevel, levelsOf } from '../meta/profile';
 import { Fx } from '../render/fx';
+import * as impact from '../render/impact';
 import { Scene3D, type DeployPreview, type PowerPreview } from '../render3d/scene3d';
 import { spriteUrl } from '../render/sprites';
 import { THEMES } from '../render/themes';
@@ -178,7 +179,9 @@ export function battleScreen(params: unknown): HTMLElement {
   let preview: DeployPreview | null = null;
   let powerPreview: PowerPreview | null = null;
   let powerArmed = false;
-  let drag: { i: number; el: HTMLElement; moved: boolean; sx: number; sy: number; overArena: boolean } | null = null;
+  let drag: { i: number; el: HTMLElement; moved: boolean; sx: number; sy: number; overArena: boolean; lift: number } | null = null;
+  /** Touch only: the placement sits this far above the fingertip so the finger never hides it. */
+  const LIFT_PX = 76;
   let tutorialEl: HTMLElement | null = null;
 
   const overArena = (cx: number, cy: number) => {
@@ -212,12 +215,13 @@ export function battleScreen(params: unknown): HTMLElement {
     }
     return false;
   };
-  const updatePreview = (i: number, cx: number, cy: number) => {
+  const updatePreview = (i: number, cx: number, cy: number, finger?: { x: number; y: number }) => {
     const id = battle.players[0].hand[i];
     const t = renderer.toTile(cx, cy);
     const pos = battle.placement(0, id, t.x, t.y);
     const ok = !!pos && battle.players[0].mana >= CARDS[id].cost;
     preview = pos ? { cardId: id, x: pos.x, y: pos.y, ok } : { cardId: id, x: t.x, y: t.y, ok: false };
+    if (finger && t.x > -90) preview.finger = finger;
   };
 
   slots.forEach((slot, i) => {
@@ -232,7 +236,7 @@ export function battleScreen(params: unknown): HTMLElement {
       const el = h('div', { class: 'drag-card' }, cardView(id));
       el.style.display = 'none';
       root.appendChild(el);
-      drag = { i, el, moved: false, sx: e.clientX, sy: e.clientY, overArena: false };
+      drag = { i, el, moved: false, sx: e.clientX, sy: e.clientY, overArena: false, lift: e.pointerType === 'mouse' ? 0 : LIFT_PX };
       setSelected(i);
       sfx('card');
     });
@@ -243,9 +247,10 @@ export function battleScreen(params: unknown): HTMLElement {
       const rr = root.getBoundingClientRect();
       drag.overArena = overArena(e.clientX, e.clientY);
       slot.classList.add('dragging');
+      drag.el.classList.toggle('cancel', !drag.overArena);
       if (drag.overArena) {
         drag.el.style.display = 'none';
-        updatePreview(i, e.clientX, e.clientY);
+        updatePreview(i, e.clientX, e.clientY - drag.lift, drag.lift ? { x: e.clientX, y: e.clientY } : undefined);
       } else {
         drag.el.style.display = '';
         drag.el.style.left = `${e.clientX - rr.left}px`;
@@ -262,7 +267,7 @@ export function battleScreen(params: unknown): HTMLElement {
       preview = null;
       if (cancelled) return;
       if (d.moved && overArena(e.clientX, e.clientY)) {
-        if (tryDeploy(i, e.clientX, e.clientY)) setSelected(null);
+        if (tryDeploy(i, e.clientX, e.clientY - d.lift)) setSelected(null);
       } else if (d.moved) {
         setSelected(null);
       }
@@ -366,21 +371,15 @@ export function battleScreen(params: unknown): HTMLElement {
         if (e.kind === 'arrow' || e.kind === 'bolt') sfx('arrow', 0.5);
         else if (e.kind === 'bullet' || e.kind === 'cannon') sfx('shot', e.kind === 'cannon' ? 0.7 : 0.45);
         else if (e.kind === 'fire') sfx('fire', 0.4);
-        if (u && (e.kind === 'cannon' || e.kind === 'bullet')) {
-          fx.burst(u.x, u.y - 0.2, 3, { kind: 'smoke', color: '#dddddd', speed: 0.6, up: 1, gravity: 0, max: 0.5, size: 0.18, z: u.kind === 'tower' ? 3 : 1 });
-        }
+        if (u && e.kind !== 'melee') impact.muzzle(fx, u.x, u.y, u.kind === 'tower' ? u.s.height * 0.8 : u.flying ? 1.6 : u.s.height * 0.55, e.kind);
         break;
       }
       case 'hit': {
-        fx.burst(e.x, e.y, e.heavy ? 7 : 3, {
-          kind: 'spark',
-          colors: e.heavy ? ['#fff3b0', '#ffb347', '#ffffff'] : ['#ffffff', '#ffe9a8'],
-          speed: e.heavy ? 3.5 : 2,
-          up: 2.5,
-          z: e.air ? 1.6 : 0.6,
-          max: 0.35,
-          size: e.heavy ? 0.13 : 0.09,
-        });
+        const tgt = unitById(e.targetId);
+        const isTower = tgt?.kind === 'tower';
+        const feel = isTower ? impact.structureHit(fx, e.x, e.y, e.heavy) : impact.strike(fx, e.x, e.y, e.heavy, e.air, e.fromX, e.fromY);
+        renderer.kick(e.targetId, e.fromX, e.fromY, 0.6 + Math.min(1.2, e.amount / 200) + (e.heavy ? 0.3 : 0));
+        applyFeel(feel);
         sfx(e.heavy ? 'heavy' : 'hit', e.heavy ? 0.7 : 0.35);
         break;
       }
@@ -461,52 +460,50 @@ export function battleScreen(params: unknown): HTMLElement {
     if (profile.settings.vibrate) vibrate(ms);
   };
 
+  /** Apply the sim-level half of an impact: a brief freeze-frame and a buzz. */
+  let hitStopT = 0;
+  let hitStopCool = 0;
+  const applyFeel = (f: impact.Feel) => {
+    if (f.hitStop > 0 && hitStopCool <= 0) {
+      hitStopT = Math.max(hitStopT, f.hitStop);
+      hitStopCool = 0.28;
+    }
+    if (f.rumble >= 0.5) vib(Math.round(30 + f.rumble * 60));
+  };
+
   const impactFx = (kind: string, x: number, y: number, r: number) => {
     switch (kind) {
       case 'fire':
-      case 'meteor': {
-        const big = kind === 'meteor';
-        fx.burst(x, y, big ? 50 : 30, { kind: 'ember', colors: ['#fff3b0', '#ffb347', '#ff6a2a', '#ff3d1a'], speed: big ? 6 : 4.5, up: 4, max: 0.8, size: 0.16 });
-        fx.burst(x, y, big ? 24 : 14, { kind: 'smoke', colors: ['#5a4a42', '#3d3330', '#7a6a60'], speed: 2, up: 1.5, gravity: 0.3, max: 1.2, size: 0.5 });
-        fx.ring(x, y, r, '#ffb347', 0.45, 0.25, 0.2, 'rgba(255,140,40,0.25)');
-        fx.glow(x, y, r * (big ? 5 : 3.6), '#ff9a3a', big ? 0.6 : 0.45, 0.8);
-        fx.decal(x, y, r * 0.75, big ? 'crater' : 'scorch', 7);
-        fx.addShake(big ? 0.55 : 0.3);
-        sfx('boom', big ? 1 : 0.75);
-        vib(big ? 90 : 40);
+        // Fireball spell (big radius) vs. wyrmling / pyromancer splash (small).
+        applyFeel(impact.fireBlast(fx, x, y, r, r >= 1.6 ? 'medium' : 'small'));
+        sfx('boom', r >= 1.6 ? 0.75 : 0.35);
         break;
-      }
+      case 'meteor':
+        applyFeel(impact.fireBlast(fx, x, y, r, 'big'));
+        sfx('boom', 1);
+        break;
       case 'bomb':
-        fx.burst(x, y, 22, { kind: 'ember', colors: ['#fff3b0', '#ffb347', '#ff6a2a'], speed: 4, up: 3.5, max: 0.6, size: 0.14 });
-        fx.burst(x, y, 12, { kind: 'smoke', colors: ['#444', '#666', '#888'], speed: 1.8, up: 1.2, gravity: 0.2, max: 1, size: 0.45 });
-        fx.ring(x, y, r, '#ffd27a', 0.4, 0.2);
-        fx.glow(x, y, r * 3.5, '#ffb04a', 0.4, 0.6);
-        fx.decal(x, y, r * 0.6, 'scorch', 5);
-        fx.addShake(0.25);
+      case 'cannon':
+      case 'stone':
+        applyFeel(impact.bombBlast(fx, x, y, r));
         sfx('boom', 0.6);
         break;
       case 'arrows':
-        for (let i = 0; i < 12; i++) {
-          const a = Math.random() * Math.PI * 2;
-          const d = Math.sqrt(Math.random()) * r;
-          fx.burst(x + Math.cos(a) * d, y + Math.sin(a) * d * 0.85, 2, { kind: 'dust', colors: ['#d9c8a6', '#c4b08a'], speed: 0.8, up: 0.8, max: 0.4, size: 0.12 });
-        }
+        applyFeel(impact.arrowRain(fx, x, y, r));
         sfx('arrow', 0.8);
         break;
       case 'zap':
-        fx.ring(x, y, r, '#bff4ff', 0.3, 0.15, 0.2, 'rgba(160,230,255,0.25)');
-        fx.glow(x, y, r * 3, '#9fe8ff', 0.3, 0.8);
+        applyFeel(impact.zapBlast(fx, x, y, r));
         break;
       case 'freeze':
         break;
       case 'spin':
         fx.ring(x, y, r, 'rgba(255,255,255,0.8)', 0.25, 0.12, r * 0.4);
+        fx.radial(x, y, 10, { kind: 'dust', colors: ['#e8dcc0', '#d1c3a3'], speed: 2.4, up: 0.4, max: 0.4, size: 0.2, offset: r * 0.5 });
+        fx.addShake(0.06);
         break;
       default:
-        // Splash projectiles (wyrmling / pyromancer fire).
-        fx.burst(x, y, 10, { kind: 'ember', colors: ['#fff3b0', '#ffb347', '#ff6a2a'], speed: 2.5, up: 2.5, max: 0.45, size: 0.12, z: 0.3 });
-        fx.glow(x, y, r * 2.6, '#ffa040', 0.3, 0.5);
-        fx.ring(x, y, r, 'rgba(255,170,60,0.85)', 0.3, 0.12);
+        applyFeel(impact.fireBlast(fx, x, y, r, 'small'));
     }
   };
 
@@ -518,7 +515,6 @@ export function battleScreen(params: unknown): HTMLElement {
           const d = Math.random() * r * 0.8;
           fx.bolt(x + Math.cos(a) * d + (Math.random() - 0.5), y + Math.sin(a) * d, x + Math.cos(a) * d, y + Math.sin(a) * d * 0.85, '#bff4ff', 0.12, 0.3, 9, 0);
         }
-        fx.burst(x, y, 16, { kind: 'spark', colors: ['#ffffff', '#bff4ff', '#6fd6ff'], speed: 4, up: 3, max: 0.4 });
         fx.flash = 0.15;
         fx.flashColor = '#cff6ff';
         sfx('zap');
@@ -526,12 +522,7 @@ export function battleScreen(params: unknown): HTMLElement {
       case 'thunder':
         fx.bolt(x + (Math.random() - 0.5) * 2, y - 1, x, y, '#fff6a0', 0.22, 0.4, 14, 0);
         fx.bolt(x + (Math.random() - 0.5) * 2, y - 1, x, y, '#ffffff', 0.12, 0.35, 14, 0);
-        fx.burst(x, y, 20, { kind: 'spark', colors: ['#ffffff', '#fff6a0', '#ffd23f'], speed: 5, up: 4, max: 0.5 });
-        fx.ring(x, y, 1.6, '#fff6a0', 0.4, 0.2);
-        fx.glow(x, y, 6, '#fff6c0', 0.45, 1);
-        fx.addShake(0.3);
-        fx.flash = 0.25;
-        fx.flashColor = '#fffbe0';
+        applyFeel(impact.thunderStrike(fx, x, y));
         sfx('zap');
         sfx('boom', 0.5);
         break;
@@ -629,7 +620,9 @@ export function battleScreen(params: unknown): HTMLElement {
     const rawDt = Math.min(0.1, (now - last) / 1000);
     last = now;
     slowT = Math.max(0, slowT - rawDt);
-    const dt = slowT > 0 ? rawDt * 0.3 : rawDt;
+    hitStopT = Math.max(0, hitStopT - rawDt);
+    hitStopCool = Math.max(0, hitStopCool - rawDt);
+    const dt = slowT > 0 ? rawDt * 0.3 : hitStopT > 0 ? rawDt * 0.06 : rawDt;
     const running = started && !paused && !document.hidden && !tutorialEl;
     if (running && battle.phase !== 'ended') {
       acc += dt;
@@ -654,11 +647,7 @@ export function battleScreen(params: unknown): HTMLElement {
       if (u.deployT <= 0) {
         deploying.delete(id);
         if (!u.flying) {
-          fx.burst(u.x, u.y + u.s.radius * 0.4, u.s.radius > 0.6 ? 12 : 5, { kind: 'dust', colors: ['#e8dcc0', '#d1c3a3'], speed: 1.6, up: 0.6, gravity: 1, max: 0.5, size: 0.2 });
-          if (u.s.radius >= 0.7) {
-            fx.addShake(0.15);
-            fx.ring(u.x, u.y, 1.4, 'rgba(255,255,255,0.6)', 0.35, 0.08);
-          }
+          applyFeel(impact.landing(fx, u.x, u.y, u.s.radius));
         }
       }
     }
