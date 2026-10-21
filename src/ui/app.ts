@@ -2,6 +2,8 @@ import { setMusicEnabled, setSfxEnabled, sfx } from '../audio/sfx';
 import { loadProfile, resetProfile, saveProfile, type Profile } from '../meta/profile';
 import { spriteUrl } from '../render/sprites';
 import { clear, fmt, h, img } from './dom';
+import { loadingScreen } from './loadingScreen';
+import { createTabs, isTab } from './tabs';
 
 export type ScreenName = 'home' | 'map' | 'cards' | 'gauntlet' | 'battle';
 type ScreenFn = (params?: unknown) => HTMLElement;
@@ -18,6 +20,7 @@ export function initApp(root: HTMLElement): void {
   app.root = root;
   app.profile = loadProfile();
   applySettings();
+  tabs.initSwipe();
 }
 
 export function applySettings(): void {
@@ -56,21 +59,21 @@ let loaderUp = false;
 function goWithLoader(name: ScreenName, params?: unknown): void {
   if (loaderUp) return;
   loaderUp = true;
-  const loader = h('div', { class: 'loading loading-battle' },
-    h('div', { class: 'logo' }, h('div', { class: 'l1' }, 'GROKINGTON'), h('div', { class: 'l2' }, 'CLASH')),
-    h('div', { class: 'spinner' }),
-    h('div', { class: 'muted', style: 'font-weight:800' }, 'Preparing the battlefield...'),
-  );
+  const ls = loadingScreen('loading-battle');
+  ls.setStatus('Preparing the battlefield...');
+  ls.creep();
+  const loader = ls.el;
   app.root.appendChild(loader);
   // Two frames: the first commits the loader, the second guarantees it was painted before we block.
   requestAnimationFrame(() =>
     requestAnimationFrame(() => {
       swapScreen(name, params);
       app.root.appendChild(loader);
+      ls.setProgress(1);
       // The battle's first frame compiles shaders; keep the loader up until it has rendered.
       requestAnimationFrame(() =>
         requestAnimationFrame(() => {
-          loader.remove();
+          ls.destroy();
           loaderUp = false;
         }),
       );
@@ -78,9 +81,23 @@ function goWithLoader(name: ScreenName, params?: unknown): void {
   );
 }
 
+const tabs = createTabs({
+  get root() {
+    return app.root;
+  },
+  current: () => current,
+  build: (name) => screens[name]?.() ?? null,
+  land: (name, el) => {
+    current = { name, el };
+  },
+  dispose: (el) => (el as unknown as { __dispose?: () => void }).__dispose?.(),
+});
+
 export function go(name: ScreenName, params?: unknown): void {
   if (!screens[name]) throw new Error(`no screen ${name}`);
+  tabs.settle(); // a nav request mid-animation: land instantly first
   if (name === 'battle') goWithLoader(name, params);
+  else if (current && current.name !== name && isTab(name) && isTab(current.name) && tabs.slideTo(name)) return;
   else swapScreen(name, params);
 }
 

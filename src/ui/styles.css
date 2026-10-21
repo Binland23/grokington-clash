@@ -33,6 +33,7 @@ body {
   margin: 0;
   height: 100%;
   overflow: hidden;
+  -webkit-text-size-adjust: 100%;
   overscroll-behavior: none;
   background: #0d1430;
   color: var(--text);
@@ -40,6 +41,9 @@ body {
 }
 
 body {
+  position: fixed;
+  inset: 0;
+  height: auto;
   display: flex;
   justify-content: center;
 }
@@ -48,8 +52,7 @@ body {
   position: relative;
   width: 100%;
   max-width: 520px;
-  height: 100vh;
-  height: 100dvh;
+  height: 100%;
   overflow: hidden;
   background: linear-gradient(180deg, var(--bg2), var(--bg1));
   box-shadow: 0 0 60px rgba(0, 0, 0, 0.6);
@@ -158,6 +161,19 @@ button {
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  touch-action: pan-y;
+}
+/* The incoming page during a tab swipe: only its content shows; the bars stay put. */
+.tab-incoming {
+  pointer-events: none;
+}
+.tab-incoming > .topbar,
+.tab-incoming > .navbar {
+  visibility: hidden;
+}
+.sliding .content {
+  pointer-events: none;
+  will-change: transform;
 }
 
 .topbar {
@@ -538,16 +554,15 @@ button {
   touch-action: none;
 }
 .b-top {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
+  position: relative;
+  flex: none;
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  padding: calc(var(--safe-top) + 6px) 8px 0;
+  padding: calc(var(--safe-top) + 6px) 8px 6px;
+  background: linear-gradient(180deg, #0a1433, #14224a);
+  border-bottom: 2px solid rgba(0, 0, 0, 0.45);
   z-index: 4;
-  pointer-events: none;
 }
 .b-top > * {
   pointer-events: auto;
@@ -657,7 +672,7 @@ button {
 .b-power {
   position: absolute;
   left: 8px;
-  bottom: 8px;
+  bottom: 24px;
   width: 62px;
   height: 62px;
   border-radius: 50%;
@@ -704,7 +719,7 @@ button {
 .b-foe-power {
   position: absolute;
   left: 8px;
-  top: calc(var(--safe-top) + 48px);
+  top: 8px;
   z-index: 3;
   width: 40px;
   height: 40px;
@@ -1494,6 +1509,196 @@ button {
   font-family: var(--display);
   font-size: 22px;
   animation: pulse 1s infinite;
+}
+
+/* ---------------------------------------------------------------- key-art loading screen */
+.loading.loading-art {
+  display: block;
+  overflow: hidden;
+  background: #120a24;
+}
+.ls-art {
+  position: absolute;
+  inset: -6%;
+  background-size: cover;
+  background-position: center 35%;
+  opacity: 0;
+  transform: scale(1.02);
+  transition: opacity 0.6s ease;
+}
+.ls-art.in {
+  opacity: 1;
+  animation: lsPan 16s ease-in-out infinite alternate;
+}
+@keyframes lsPan {
+  from {
+    transform: scale(1.02) translate3d(-1.5%, 0, 0);
+  }
+  to {
+    transform: scale(1.12) translate3d(1.5%, -2%, 0);
+  }
+}
+.ls-shade {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(180deg, rgba(10, 6, 30, 0.7) 0%, rgba(10, 6, 30, 0) 28%),
+    linear-gradient(0deg, rgba(8, 5, 22, 0.95) 0%, rgba(8, 5, 22, 0.55) 26%, rgba(8, 5, 22, 0) 48%);
+}
+.ls-embers {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+.ls-embers i {
+  position: absolute;
+  bottom: -10px;
+  border-radius: 50%;
+  background: radial-gradient(circle, #fff3b0, #ff9a3a 60%, rgba(255, 120, 30, 0));
+  opacity: 0;
+  animation: lsEmber linear infinite;
+}
+@keyframes lsEmber {
+  0% {
+    transform: translate3d(0, 0, 0) scale(1);
+    opacity: 0;
+  }
+  10% {
+    opacity: 0.9;
+  }
+  100% {
+    transform: translate3d(40px, -105vh, 0) scale(0.3);
+    opacity: 0;
+  }
+}
+.ls-logo {
+  position: absolute;
+  top: calc(var(--safe-top) + 7%);
+  left: 0;
+  right: 0;
+  animation: lsLogo 0.9s cubic-bezier(0.3, 1.5, 0.5, 1) both;
+}
+.ls-logo .l1 {
+  font-size: 26px;
+}
+.ls-logo .l2 {
+  font-size: 76px;
+  position: relative;
+  animation: lsFloat 3.2s ease-in-out 0.9s infinite;
+}
+.ls-logo::after {
+  /* a glint that sweeps across the logo */
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(105deg, transparent 40%, rgba(255, 255, 255, 0.75) 50%, transparent 60%);
+  mix-blend-mode: overlay;
+  background-size: 250% 100%;
+  animation: lsGlint 3.6s ease-in-out 1.2s infinite;
+  pointer-events: none;
+}
+@keyframes lsLogo {
+  from {
+    transform: translateY(-60px) scale(0.6);
+    opacity: 0;
+  }
+  to {
+    transform: none;
+    opacity: 1;
+  }
+}
+@keyframes lsFloat {
+  50% {
+    transform: translateY(-5px);
+  }
+}
+@keyframes lsGlint {
+  from {
+    background-position: 160% 0;
+  }
+  60%,
+  to {
+    background-position: -60% 0;
+  }
+}
+.ls-bottom {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: calc(var(--safe-bottom) + 7%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 0 8%;
+}
+.ls-tip {
+  min-height: 2.6em;
+  display: flex;
+  align-items: flex-end;
+  text-align: center;
+  font-weight: 800;
+  font-size: 14px;
+  color: #ffe9b0;
+  text-shadow: 0 2px 0 rgba(0, 0, 0, 0.7);
+  transition: opacity 0.35s, transform 0.35s;
+}
+.ls-tip.out {
+  opacity: 0;
+  transform: translateY(6px);
+}
+.loading-art .ls-bar {
+  position: relative;
+  width: 100%;
+  height: 24px;
+  border-radius: 13px;
+  background: rgba(10, 6, 30, 0.7);
+  border: 3px solid #1a1030;
+  box-shadow:
+    0 0 0 2px rgba(255, 210, 80, 0.55),
+    0 4px 0 rgba(0, 0, 0, 0.5);
+  overflow: hidden;
+}
+.loading-art .ls-bar i {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 0;
+  border-radius: 10px;
+  background:
+    repeating-linear-gradient(115deg, rgba(255, 255, 255, 0.22) 0 10px, rgba(255, 255, 255, 0) 10px 20px),
+    linear-gradient(180deg, #ffe066, #ffb619 60%, #ff8a00);
+  background-size: 28px 100%, 100% 100%;
+  animation: lsStripes 0.7s linear infinite;
+  transition: width 0.25s ease-out;
+  box-shadow: 0 0 12px rgba(255, 190, 40, 0.9);
+}
+@keyframes lsStripes {
+  to {
+    background-position: 28px 0, 0 0;
+  }
+}
+.ls-pct {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  font-family: var(--display);
+  font-size: 14px;
+  text-shadow: 0 2px 0 rgba(0, 0, 0, 0.6);
+}
+.ls-status {
+  font-family: var(--display);
+  font-size: 18px;
+  color: #d9d3ff;
+  text-shadow: 0 2px 0 rgba(0, 0, 0, 0.7);
+}
+.ls-status.tap {
+  color: #fff;
+  font-size: 24px;
+  animation: pulse 1s infinite;
+}
+.loading-art.ready .ls-bar {
+  opacity: 0.55;
 }
 
 .boon-list {
