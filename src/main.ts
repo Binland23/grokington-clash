@@ -60,9 +60,17 @@ async function boot() {
 
 // iOS home-screen apps can resume with a stale or scrolled viewport; re-pin and re-measure.
 const fitViewport = () => {
-  // Trust the viewport the browser actually shows. (Forcing screen.height made the app taller than the visible area.)
-  const hgt = window.visualViewport?.height ?? window.innerHeight;
-  document.documentElement.style.setProperty('--app-h', `${Math.round(hgt)}px`);
+  // iOS home-screen apps (black-translucent status bar) can lay the page out shorter than the screen and refuse
+  // to paint below that line. visualViewport may still claim the full screen, so take the smaller of the two:
+  // anything taller gets clipped (that hid the mana bar).
+  const vv = window.visualViewport?.height ?? Infinity;
+  const hgt = Math.min(window.innerHeight, vv);
+  const root = document.documentElement;
+  root.style.setProperty('--app-h', `${Math.round(hgt)}px`);
+  // When the browser already leaves a strip under the page, the home indicator sits in that strip,
+  // so don't pad for it a second time.
+  const standalone = (navigator as unknown as { standalone?: boolean }).standalone === true || matchMedia('(display-mode: standalone), (display-mode: fullscreen)').matches;
+  root.classList.toggle('ios-gap', standalone && screen.height - hgt > 40);
 };
 fitViewport();
 window.addEventListener('resize', fitViewport);
