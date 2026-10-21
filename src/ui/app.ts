@@ -52,6 +52,7 @@ function swapScreen(name: ScreenName, params?: unknown): void {
   const el = fn(params);
   app.root.appendChild(el);
   current = { name, el };
+  document.body.dataset.screen = name;
 }
 
 /** Building the 3D arena blocks the main thread, so paint a loading screen first. */
@@ -89,6 +90,7 @@ const tabs = createTabs({
   build: (name) => screens[name]?.() ?? null,
   land: (name, el) => {
     current = { name, el };
+    document.body.dataset.screen = name;
   },
   dispose: (el) => (el as unknown as { __dispose?: () => void }).__dispose?.(),
 });
